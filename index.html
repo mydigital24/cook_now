@@ -7,9 +7,16 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="cook_now">
-    <link rel="manifest" href="data:application/manifest+json,{%22name%22:%22cook_now%22,%22short_name%22:%22cook%22,%22icons%22:[{%22src%22:%22https://img.freepik.com/free-vector/flat-design-illustration-kitchen-cooking-elements_52683-114726.jpg?t=st=1775672507~exp=1775676107~hmac=552d4d67eaf904dcafec06227bdf228d0448f1ae29ca23a49823372d0478233a&w=1480%22,%22sizes%22:%22192x192%22,%22type%22:%22image/jpeg%22}],%22start_url%22:%22./%22,%22display%22:%22standalone%22,%22background_color%22:%22#ffffff%22,%22theme_color%22:%22#007aff%22}">
+    <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/jpeg" href="https://img.freepik.com/free-vector/flat-design-illustration-kitchen-cooking-elements_52683-114726.jpg?t=st=1775672507~exp=1775676107~hmac=552d4d67eaf904dcafec06227bdf228d0448f1ae29ca23a49823372d0478233a&w=64">
     <link rel="apple-touch-icon" href="https://img.freepik.com/free-vector/flat-design-illustration-kitchen-cooking-elements_52683-114726.jpg?t=st=1775672507~exp=1775676107~hmac=552d4d67eaf904dcafec06227bdf228d0448f1ae29ca23a49823372d0478233a&w=180">
+    <!-- Additional PWA Meta Tags -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="application-name" content="cook_now">
+    <meta name="msapplication-TileColor" content="#007aff">
+    <meta name="msapplication-TileImage" content="https://img.freepik.com/free-vector/flat-design-illustration-kitchen-cooking-elements_52683-114726.jpg?t=st=1775672507~exp=1775676107~hmac=552d4d67eaf904dcafec06227bdf228d0448f1ae29ca23a49823372d0478233a&w=144">
+    <meta name="theme-color" content="#007aff" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
     <title>cook_now</title>
     <style>
         :root { 
@@ -1321,6 +1328,64 @@
     loadMensaOverview();
     updateGlobalShopping();
     loadTheme();
+
+    // ===== SERVICE WORKER REGISTRATION =====
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./service-worker.js')
+                .then((registration) => {
+                    console.log('✓ Service Worker registered successfully:', registration);
+                    
+                    // Check for updates periodically
+                    setInterval(() => {
+                        registration.update();
+                    }, 60000); // Check every minute
+                    
+                    // Listen for updates
+                    registration.addEventListener('updatefound', () => {
+                        const newWorker = registration.installing;
+                        newWorker.addEventListener('statechange', () => {
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                console.log('✓ New Service Worker update available');
+                            }
+                        });
+                    });
+                })
+                .catch((error) => {
+                    console.log('✗ Service Worker registration failed:', error);
+                });
+        });
+    } else {
+        console.log('Service Workers not supported in this browser');
+    }
+    
+    // ===== PWA INSTALL PROMPT =====
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        console.log('✓ Install prompt available');
+    });
+    
+    // Detect app installation
+    window.addEventListener('appinstalled', () => {
+        console.log('✓ App was installed successfully');
+        deferredPrompt = null;
+    });
+    
+    // Detect if running as installed app
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+        console.log('✓ App is running in standalone mode (installed)');
+    }
+    
+    // PWA Detection
+    window.addEventListener('online', () => {
+        console.log('✓ Connection restored');
+    });
+    
+    window.addEventListener('offline', () => {
+        console.log('✗ Connection lost - using cached data');
+    });
 
 </script>
 </body>

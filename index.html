@@ -494,6 +494,32 @@
         .check-box.checked::after { content: '✓'; color: white; position: absolute; left: 4px; top: -1px; font-size: 14px; }
         .tag-badge { background: #e5e5ea; color: #3a3a3c; font-size: 11px; padding: 2px 6px; border-radius: 4px; margin-right: 4px; }
         .delete-btn { color: var(--danger); font-size: 18px; border: none; background: none; padding: 0 5px; }
+
+        /* Modal Styles */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            backdrop-filter: blur(5px);
+        }
+        .modal-content {
+            background: var(--card);
+            border-radius: 14px;
+            padding: 20px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .modal.hidden { display: none; }
     </style>
 </head>
 <body>
@@ -512,6 +538,10 @@
     <button class="desktop-nav-item" onclick="showTab('space', this, true)">
         <span>👤</span>
         <span>Notizen</span>
+    </button>
+    <button class="desktop-nav-item" onclick="showTab('recipes', this, true)">
+        <span>🍳</span>
+        <span>Rezepte</span>
     </button>
     
     <div class="desktop-nav-settings">
@@ -594,6 +624,78 @@
             </div>
         </div>
     </div>
+
+    <div id="view-recipes" class="view hidden">
+        <div class="card">
+            <h2>🍳 Gemeinsame Rezepte</h2>
+            <div id="recipes-status" class="status-message"></div>
+            
+            <!-- Neues Menü für Rezepte und Timer -->
+            <div style="display:flex; gap:8px; margin-bottom:15px; border-bottom:1px solid #e5e5ea; padding-bottom:10px;">
+                <button class="btn btn-small" id="menu-recipes" onclick="showRecipeSection('recipes')" style="background:var(--primary);">🍳 Rezepte</button>
+                <button class="btn btn-small" id="menu-timer" onclick="showRecipeSection('timer')" style="background:#8e8e93;">⏱️ Timer</button>
+            </div>
+            
+            <div id="section-recipes">
+                <input type="text" id="search-recipes" placeholder="Rezepte suchen..." oninput="renderRecipes()">
+                <button class="btn btn-small" onclick="showCreateRecipe()">Neues Rezept</button>
+                <div id="recipes-list"></div>
+                <div id="create-recipe-panel" class="hidden" style="margin-top:15px;">
+                    <h3>Rezept erstellen</h3>
+                    <input type="text" id="recipe-title" placeholder="Titel">
+                    <textarea id="recipe-ingredients" rows="3" placeholder="Zutaten (eine pro Zeile)"></textarea>
+                    <textarea id="recipe-instructions" rows="5" placeholder="Anweisungen"></textarea>
+                    <input type="number" id="recipe-time" placeholder="Kochzeit in Minuten">
+                    <div style="display:flex; gap:8px; margin-top:8px;">
+                        <button class="btn btn-small" onclick="saveRecipe()">Speichern</button>
+                        <button class="btn btn-small" style="background:#8e8e93;" onclick="cancelCreateRecipe()">Abbrechen</button>
+                    </div>
+                </div>
+                <div id="edit-recipe-panel" class="hidden" style="margin-top:15px;">
+                    <h3>Rezept bearbeiten</h3>
+                    <input type="text" id="edit-recipe-title" placeholder="Titel">
+                    <textarea id="edit-recipe-ingredients" rows="3" placeholder="Zutaten"></textarea>
+                    <textarea id="edit-recipe-instructions" rows="5" placeholder="Anweisungen"></textarea>
+                    <input type="number" id="edit-recipe-time" placeholder="Kochzeit in Minuten">
+                    <div style="display:flex; gap:8px; margin-top:8px;">
+                        <button class="btn btn-small" onclick="saveRecipeEdit()">Speichern</button>
+                        <button class="btn btn-small" style="background:#8e8e93;" onclick="cancelEditRecipe()">Abbrechen</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="section-timer" class="hidden">
+                <h3>⏱️ Küchen-Timer</h3>
+                <input type="number" id="timer-minutes" placeholder="Minuten eingeben">
+                <button class="btn btn-small" onclick="startTimer()">Timer starten</button>
+                <div id="timer-display" style="font-size:32px; margin:20px 0; text-align:center; font-weight:bold;">00:00</div>
+                <button class="btn btn-small" style="background:#ff3b30;" onclick="stopTimer()">Timer stoppen</button>
+                <div style="margin-top:20px; font-size:14px; color:var(--gray);">
+                    💡 Tipp: Du kannst den Timer auch direkt aus einem Rezept heraus starten!
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recipe Details Modal -->
+    <div id="recipe-details-modal" class="modal hidden">
+        <div class="modal-content">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:15px;">
+                <h3 id="recipe-details-title">Rezept</h3>
+                <button class="delete-btn" onclick="closeRecipeDetails()">×</button>
+            </div>
+            <div style="font-size:14px; color: var(--gray); margin-bottom:15px;">Kochzeit: <span id="recipe-details-time">0</span> Minuten</div>
+            <div style="margin-bottom:15px;">
+                <h4>Zutaten:</h4>
+                <div id="recipe-details-ingredients" style="white-space: pre-line;"></div>
+            </div>
+            <div style="margin-bottom:15px;">
+                <h4>Anweisungen:</h4>
+                <div id="recipe-details-instructions" style="white-space: pre-line;"></div>
+            </div>
+            <button class="btn" onclick="startRecipeTimerFromDetails()">Timer starten</button>
+        </div>
+    </div>
 </div>
 
 <!-- Sources & Attribution Section -->
@@ -633,6 +735,7 @@
     <button class="nav-item active" onclick="showTab('plan', this)"><span>📅</span>Plan</button>
     <button class="nav-item" onclick="showTab('shop', this)"><span>🛒</span>Einkauf</button>
     <button class="nav-item" onclick="showTab('space', this)"><span>👤</span>Space</button>
+    <button class="nav-item" onclick="showTab('recipes', this)"><span>🍳</span>Rezepte</button>
     <button class="settings-btn" onclick="toggleSettings()" title="Einstellungen">⚙️</button>
 </nav>
 
@@ -795,7 +898,7 @@
     });
     
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
-    import { getFirestore, doc, setDoc, getDoc, onSnapshot, deleteDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+    import { getFirestore, doc, setDoc, getDoc, onSnapshot, deleteDoc, collection, getDocs, addDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyAySiMGc3vbfkPwLTuLFnMRdZsBSLvZ1p8",
@@ -816,6 +919,11 @@
     let currentSpaceItems = [];
     let currentEditItemId = null;
     let isAdminMode = false;
+    let currentRecipesUser = null;
+    let currentRecipesItems = [];
+    let currentEditRecipeId = null;
+    let timerInterval = null;
+    let timerEndTime = null;
 
     // TAB NAVIGATION
     window.showTab = (id, btn, isDesktop) => {
@@ -1321,6 +1429,270 @@
         showStatus('space', 'Passwort aktualisiert.', 'success');
     };
 
+    // --- RECIPES ---
+    function loadSharedRecipes() {
+        const ref = collection(db, "shared_recipes");
+        onSnapshot(ref, (querySnapshot) => {
+            currentRecipesItems = [];
+            querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                currentRecipesItems.push({
+                    id: doc.id,
+                    ...data,
+                    createdAt: data.createdAt || Date.now() // Fallback für alte Rezepte
+                });
+            });
+            renderRecipes(currentRecipesItems);
+        });
+    }
+
+    window.showRecipeSection = (section) => {
+        document.getElementById('section-recipes').classList.toggle('hidden', section !== 'recipes');
+        document.getElementById('section-timer').classList.toggle('hidden', section !== 'timer');
+        document.getElementById('menu-recipes').style.background = section === 'recipes' ? 'var(--primary)' : '#8e8e93';
+        document.getElementById('menu-timer').style.background = section === 'timer' ? 'var(--primary)' : '#8e8e93';
+    };
+
+    function renderRecipes(items) {
+        if (!items) items = currentRecipesItems;
+        const container = document.getElementById('recipes-list');
+        const query = document.getElementById('search-recipes').value.toLowerCase();
+
+        const filtered = items
+            .filter(recipe => {
+                const text = `${recipe.title || ''} ${recipe.ingredients || ''} ${recipe.instructions || ''}`.toLowerCase();
+                return text.includes(query);
+            })
+            .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
+        if (!filtered.length) {
+            container.innerHTML = '<div>Keine Rezepte gefunden.</div>';
+            return;
+        }
+
+        container.innerHTML = filtered.map(recipe => `
+            <div class="card recipe-card" style="margin-bottom:10px; cursor:pointer;" onclick="showRecipeDetails('${recipe.id}')">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                    <div style="flex:1;">
+                        <h4 style="margin:0 0 8px 0;">${recipe.title || 'Ohne Titel'}</h4>
+                        <div style="font-size:14px; color: var(--gray); margin-bottom:8px;">Kochzeit: ${recipe.time || 0} Minuten</div>
+                        <div style="font-size:14px; color: var(--gray);">${(recipe.ingredients || '').split('\n')[0] || 'Keine Zutaten'}...</div>
+                    </div>
+                    <div onclick="event.stopPropagation();">
+                        <button class="btn btn-small" onclick="editRecipe('${recipe.id}')">Bearbeiten</button>
+                        <button class="delete-btn" onclick="deleteRecipe('${recipe.id}')">×</button>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    window.showCreateRecipe = () => {
+        document.getElementById('create-recipe-panel').classList.remove('hidden');
+        document.getElementById('recipe-title').value = '';
+        document.getElementById('recipe-ingredients').value = '';
+        document.getElementById('recipe-instructions').value = '';
+        document.getElementById('recipe-time').value = '';
+    };
+
+    window.cancelCreateRecipe = () => {
+        document.getElementById('create-recipe-panel').classList.add('hidden');
+    };
+
+    window.saveRecipe = async () => {
+        const title = document.getElementById('recipe-title').value.trim();
+        const ingredients = document.getElementById('recipe-ingredients').value.trim();
+        const instructions = document.getElementById('recipe-instructions').value.trim();
+        const time = parseInt(document.getElementById('recipe-time').value) || 0;
+        if (!title) return showStatus('recipes', 'Titel erforderlich.', 'error');
+
+        const ref = collection(db, 'shared_recipes');
+        await addDoc(ref, { title, ingredients, instructions, time, createdAt: Date.now() });
+        document.getElementById('create-recipe-panel').classList.add('hidden');
+        showStatus('recipes', 'Rezept gespeichert.', 'success');
+    };
+
+    window.editRecipe = (id) => {
+        const recipe = currentRecipesItems.find(r => r.id === id);
+        if (!recipe) return;
+        currentEditRecipeId = id;
+        document.getElementById('edit-recipe-title').value = recipe.title || '';
+        document.getElementById('edit-recipe-ingredients').value = recipe.ingredients || '';
+        document.getElementById('edit-recipe-instructions').value = recipe.instructions || '';
+        document.getElementById('edit-recipe-time').value = recipe.time || 0;
+        document.getElementById('edit-recipe-panel').classList.remove('hidden');
+    };
+
+    window.cancelEditRecipe = () => {
+        currentEditRecipeId = null;
+        document.getElementById('edit-recipe-panel').classList.add('hidden');
+    };
+
+    window.saveRecipeEdit = async () => {
+        if (!currentEditRecipeId) return;
+        const title = document.getElementById('edit-recipe-title').value.trim();
+        const ingredients = document.getElementById('edit-recipe-ingredients').value.trim();
+        const instructions = document.getElementById('edit-recipe-instructions').value.trim();
+        const time = parseInt(document.getElementById('edit-recipe-time').value) || 0;
+        if (!title) return showStatus('recipes', 'Titel erforderlich.', 'error');
+
+        const ref = doc(db, 'shared_recipes', currentEditRecipeId);
+        await updateDoc(ref, { title, ingredients, instructions, time });
+        document.getElementById('edit-recipe-panel').classList.add('hidden');
+        currentEditRecipeId = null;
+        showStatus('recipes', 'Rezept aktualisiert.', 'success');
+    };
+
+    window.deleteRecipe = async (id) => {
+        const ref = doc(db, 'shared_recipes', id);
+        await deleteDoc(ref);
+        showStatus('recipes', 'Rezept gelöscht.', 'success');
+    };
+
+    window.startRecipeTimer = (minutes) => {
+        if (minutes <= 0) return showStatus('recipes', 'Keine Kochzeit angegeben.', 'error');
+        startTimerFromMinutes(minutes);
+        showRecipeSection('timer'); // Wechsle zur Timer-Sektion
+    };
+
+    function startTimerFromMinutes(minutes) {
+        stopTimer();
+        timerEndTime = Date.now() + minutes * 60 * 1000;
+        updateTimerDisplay();
+        timerInterval = setInterval(updateTimerDisplay, 1000);
+        showStatus('recipes', `Timer für ${minutes} Minuten gestartet.`, 'success');
+    }
+
+    window.startTimer = () => {
+        const minutes = parseInt(document.getElementById('timer-minutes').value);
+        if (!minutes || minutes <= 0) return showStatus('recipes', 'Gültige Minuten eingeben.', 'error');
+        startTimerFromMinutes(minutes);
+    };
+
+    window.stopTimer = () => {
+        if (timerInterval) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+        }
+        timerEndTime = null;
+        document.getElementById('timer-display').innerText = '00:00';
+        showStatus('recipes', 'Timer gestoppt.', 'success');
+    };
+
+    function updateTimerDisplay() {
+        if (!timerEndTime) return;
+        const remaining = Math.max(0, timerEndTime - Date.now());
+        const minutes = Math.floor(remaining / 60000);
+        const seconds = Math.floor((remaining % 60000) / 1000);
+        document.getElementById('timer-display').innerText = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        if (remaining <= 0) {
+            playTimerSound();
+            stopTimer();
+        }
+    }
+
+    // Recipe Details Modal
+    let currentRecipeDetails = null;
+
+    window.showRecipeDetails = (id) => {
+        const recipe = currentRecipesItems.find(r => r.id === id);
+        if (!recipe) return;
+
+        currentRecipeDetails = recipe;
+        document.getElementById('recipe-details-title').innerText = recipe.title || 'Ohne Titel';
+        document.getElementById('recipe-details-time').innerText = recipe.time || 0;
+        document.getElementById('recipe-details-ingredients').innerText = recipe.ingredients || '';
+        document.getElementById('recipe-details-instructions').innerText = recipe.instructions || '';
+        document.getElementById('recipe-details-modal').classList.remove('hidden');
+    };
+
+    window.closeRecipeDetails = () => {
+        document.getElementById('recipe-details-modal').classList.add('hidden');
+        currentRecipeDetails = null;
+    };
+
+    window.startRecipeTimerFromDetails = () => {
+        if (!currentRecipeDetails) return;
+        startTimerFromMinutes(currentRecipeDetails.time || 0);
+        showRecipeSection('timer');
+        closeRecipeDetails();
+    };
+
+    // Timer Sound
+    let audioContext = null;
+    let timerSoundBuffer = null;
+
+    function initAudio() {
+        if (!audioContext) {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            createTimerSound();
+        }
+    }
+
+    function createTimerSound() {
+        // Create a simple beep sound using oscillator
+        const duration = 0.5; // 0.5 seconds
+        const frequency = 800; // 800 Hz
+        const sampleRate = audioContext.sampleRate;
+        const numSamples = duration * sampleRate;
+        const buffer = audioContext.createBuffer(1, numSamples, sampleRate);
+        const channelData = buffer.getChannelData(0);
+
+        for (let i = 0; i < numSamples; i++) {
+            // Create a sine wave with fade in/out to avoid clicks
+            const t = i / sampleRate;
+            const fadeTime = 0.1; // 100ms fade
+            let amplitude = 1;
+            if (t < fadeTime) amplitude = t / fadeTime;
+            else if (t > duration - fadeTime) amplitude = (duration - t) / fadeTime;
+
+            channelData[i] = amplitude * Math.sin(2 * Math.PI * frequency * t);
+        }
+
+        timerSoundBuffer = buffer;
+    }
+
+    function playTimerSound() {
+        if (!audioContext) initAudio();
+
+        // Resume audio context if suspended (required for iOS)
+        if (audioContext.state === 'suspended') {
+            audioContext.resume();
+        }
+
+        const source = audioContext.createBufferSource();
+        source.buffer = timerSoundBuffer;
+        source.connect(audioContext.destination);
+
+        // Play the sound 3 times with short pauses
+        let playCount = 0;
+        const playNext = () => {
+            if (playCount < 3) {
+                source.start(audioContext.currentTime);
+                playCount++;
+                if (playCount < 3) {
+                    setTimeout(playNext, 300); // 300ms pause between beeps
+                }
+            }
+        };
+
+        // Create new source for each play to avoid issues
+        const playSound = () => {
+            const newSource = audioContext.createBufferSource();
+            newSource.buffer = timerSoundBuffer;
+            newSource.connect(audioContext.destination);
+            newSource.start();
+        };
+
+        playSound();
+        setTimeout(playSound, 300);
+        setTimeout(playSound, 600);
+    }
+
+    // Initialize audio on first user interaction
+    document.addEventListener('click', initAudio, { once: true });
+    document.addEventListener('touchstart', initAudio, { once: true });
+
     // INIT
     renderPlanInputs();
     updatePlanDates();
@@ -1328,6 +1700,7 @@
     loadMensaOverview();
     updateGlobalShopping();
     loadTheme();
+    loadSharedRecipes();
 
     // ===== SERVICE WORKER REGISTRATION =====
     if ('serviceWorker' in navigator) {

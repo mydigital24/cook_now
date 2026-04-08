@@ -1,1 +1,667 @@
-# cook_now
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>cook_now</title>
+    <style>
+        :root { --primary: #007aff; --bg: #f2f2f7; --card: #ffffff; --text: #1c1c1e; --gray: #8e8e93; --accent: #ff9500; --danger: #ff3b30; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 90px; }
+        
+        /* Layout & Navigation */
+        .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(255,255,255,0.8); backdrop-filter: blur(20px); display: flex; border-top: 1px solid #d1d1d6; z-index: 1000; padding: 10px 0; }
+        .nav-item { flex: 1; border: none; background: none; font-size: 11px; display: flex; flex-direction: column; align-items: center; color: var(--gray); cursor: pointer; }
+        .nav-item.active { color: var(--primary); font-weight: bold; }
+        .nav-item span { font-size: 24px; margin-bottom: 2px; }
+
+        .container { padding: 15px; max-width: 500px; margin: auto; }
+
+        .status-message { display: none; padding: 10px 12px; margin-bottom: 12px; border-radius: 12px; font-size: 14px; line-height: 1.4; }
+        .status-message.show { display: block; }
+        .status-success { background: #d4f0ff; color: #003c72; }
+        .status-error { background: #ffe5e5; color: #8b0000; }
+        .small-tag { font-size: 12px; color: var(--gray); margin-left: 6px; }
+        .space-input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+        .space-input-row textarea { resize: vertical; }
+        .admin-panel { border: 1px solid #e5e5ea; border-radius: 14px; padding: 12px; margin-top: 15px; background: #fafafa; }
+        .admin-list { max-height: 160px; overflow:auto; margin-bottom: 12px; }
+        .admin-user-button { display:block; width:100%; text-align:left; padding:10px 12px; border:none; border-radius:10px; background:#fff; margin-bottom:6px; cursor:pointer; }
+        .admin-user-button.active { border:1px solid var(--primary); }
+        .card { background: var(--card); border-radius: 14px; padding: 16px; margin-bottom: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .hidden { display: none !important; }
+        
+        /* Inputs & Buttons */
+        input, select, textarea { width: 100%; padding: 12px; border: 1px solid #e5e5ea; border-radius: 10px; font-size: 16px; margin-bottom: 8px; background: #f9f9f9; }
+        .btn { background: var(--primary); color: white; border: none; padding: 14px; border-radius: 10px; width: 100%; font-weight: 700; font-size: 16px; cursor: pointer; transition: 0.2s; }
+        .btn:active { opacity: 0.7; }
+        .btn-small { padding: 6px 12px; font-size: 12px; width: auto; margin: 0; }
+
+        /* Planer */
+        .week-toggle { display: flex; gap: 8px; margin-bottom: 15px; }
+        .day-row { border-bottom: 1px solid #f0f0f5; padding: 12px 0; }
+        .day-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+
+        /* Space & Todos */
+        .item-row { display: flex; align-items: flex-start; gap: 12px; padding: 12px 0; border-bottom: 1px solid #f0f0f5; }
+        .check-box { width: 22px; height: 22px; border: 2px solid #c7c7cc; border-radius: 6px; flex-shrink: 0; cursor: pointer; }
+        .check-box.checked { background: var(--primary); border-color: var(--primary); position: relative; }
+        .check-box.checked::after { content: '✓'; color: white; position: absolute; left: 4px; top: -1px; font-size: 14px; }
+        .tag-badge { background: #e5e5ea; color: #3a3a3c; font-size: 11px; padding: 2px 6px; border-radius: 4px; margin-right: 4px; }
+        .delete-btn { color: var(--danger); font-size: 18px; border: none; background: none; padding: 0 5px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1 style="font-size: 32px; letter-spacing: -1px; margin-bottom: 20px;">cook_now</h1>
+
+    <div id="view-plan" class="view">
+        <div class="week-toggle">
+            <button class="btn btn-sec active" id="w1-btn" onclick="setWeek(1)">Diese Woche</button>
+            <button class="btn btn-sec" id="w2-btn" onclick="setWeek(2)">Nächste Woche</button>
+        </div>
+        <div id="plan-status" class="status-message"></div>
+        <div class="card" id="mensa-overview"></div>
+        <div class="card" id="plan-list"></div>
+        <button class="btn" onclick="savePlan()">💾 Plan Speichern</button>
+    </div>
+
+    <div id="view-shop" class="view hidden">
+        <div class="card">
+            <h2>🛒 Einkaufsliste</h2>
+            <div id="shop-status" class="status-message"></div>
+            <div id="shopping-list"></div>
+            <hr style="border:0; border-top:1px solid #eee; margin:15px 0;">
+            <div style="display:flex; gap:8px;">
+                <input type="text" id="extra-item" placeholder="Zusatzartikel...">
+                <button class="btn btn-small" onclick="addExtraItem()">Add</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="view-space" class="view hidden">
+        <div id="space-login" class="card">
+            <h2>👤 Privater Space</h2>
+            <input type="text" id="space-user" placeholder="Name">
+            <input type="password" id="space-pass" placeholder="Passwort">
+            <button class="btn" onclick="accessSpace()">Einloggen / Erstellen</button>
+        </div>
+
+        <div id="space-content" class="hidden">
+            <div class="card">
+                <div style="display:flex; justify-content:space-between;">
+                    <h2 id="user-title">Mein Space</h2>
+                    <button class="delete-btn" onclick="location.reload()" style="font-size: 14px;">Logout</button>
+                </div>
+                <div id="space-status" class="status-message"></div>
+                <input type="text" id="search-space" placeholder="Suchen oder #tag..." oninput="renderSpace()">
+                <div class="space-input-row">
+                    <input type="text" id="new-note-title" placeholder="Titel">
+                    <input type="text" id="new-note-body" placeholder="Notiz">
+                </div>
+                <button class="btn btn-small" onclick="addSpaceItem()">+</button>
+                <div id="space-items"></div>
+                <div id="edit-space-item-panel" class="hidden" style="margin-top:15px;">
+                    <h3>Notiz bearbeiten</h3>
+                    <input type="text" id="edit-note-title" placeholder="Titel">
+                    <textarea id="edit-note-body" rows="3" placeholder="Notiz"></textarea>
+                    <div style="display:flex; gap:8px; margin-top:8px;">
+                        <button class="btn btn-small" onclick="saveSpaceItemEdit()">Speichern</button>
+                        <button class="btn btn-small" style="background:#8e8e93;" onclick="cancelSpaceItemEdit()">Abbrechen</button>
+                    </div>
+                </div>
+                <div id="admin-panel" class="admin-panel hidden">
+                    <h3>Admin: Alle Spaces</h3>
+                    <div id="space-users" class="admin-list"></div>
+                    <div id="admin-selected-user"></div>
+                </div>
+                <div style="margin-top:20px;">
+                    <h3 style="margin-bottom:12px;">Zugangsdaten bearbeiten</h3>
+                    <input type="text" id="edit-space-user" placeholder="Neuer Benutzername">
+                    <input type="password" id="edit-space-pass" placeholder="Neues Passwort">
+                    <button class="btn" onclick="updateSpaceCredentials()">Speichern</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<nav class="nav-bar">
+    <button class="nav-item active" onclick="showTab('plan', this)"><span>📅</span>Plan</button>
+    <button class="nav-item" onclick="showTab('shop', this)"><span>🛒</span>Einkauf</button>
+    <button class="nav-item" onclick="showTab('space', this)"><span>👤</span>Space</button>
+</nav>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+    import { getFirestore, doc, setDoc, getDoc, onSnapshot, deleteDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyAySiMGc3vbfkPwLTuLFnMRdZsBSLvZ1p8",
+        authDomain: "cooking-plan-12404.firebaseapp.com",
+        projectId: "cooking-plan-12404",
+        storageBucket: "cooking-plan-12404.firebasestorage.app",
+        messagingSenderId: "64677458838",
+        appId: "1:64677458838:web:b42984472bd2dd1402acb7"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const tage = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag"];
+    let currentWeek = 1;
+    let currentUserSpace = null;
+    let currentSpaceOwner = null;
+    let currentSpaceItems = [];
+    let currentEditItemId = null;
+    let isAdminMode = false;
+
+    // TAB NAVIGATION
+    window.showTab = (id, btn) => {
+        document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        document.getElementById('view-' + id).classList.remove('hidden');
+        btn.classList.add('active');
+    };
+
+    // --- MEAL PLANER ---
+    function renderPlanInputs() {
+        const container = document.getElementById('plan-list');
+        container.innerHTML = tage.map((t, i) => `
+            <div class="day-row">
+                <div class="day-header">
+                    <strong>${t} <span id="date-${i}" style="font-weight:400; color: var(--gray); font-size:13px;"></span></strong>
+                    <label style="font-size:12px;"><input type="checkbox" id="mensa-${i}"> Mensa</label>
+                </div>
+                <input type="text" id="dish-${i}" placeholder="Gericht">
+                <input type="text" id="ing-${i}" placeholder="Zutaten (mit Komma trennen)">
+            </div>
+        `).join('');
+    }
+
+    const shoppingChecked = JSON.parse(localStorage.getItem('shoppingChecked') || '{}');
+    let w1Data = null;
+    let w2Data = null;
+    let extData = null;
+
+    function getWeekStartDate(weekNumber) {
+        const now = new Date();
+        const day = now.getDay();
+        const mondayOffset = day === 0 ? -6 : 1 - day;
+        const monday = new Date(now);
+        monday.setDate(now.getDate() + mondayOffset + (weekNumber - 1) * 7);
+        return monday;
+    }
+
+    function formatDate(date) {
+        return date.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
+    }
+
+    function updatePlanDates() {
+        tage.forEach((_, i) => {
+            const monday = getWeekStartDate(currentWeek);
+            const day = new Date(monday);
+            day.setDate(monday.getDate() + i);
+            document.getElementById(`date-${i}`).innerText = formatDate(day);
+        });
+    }
+
+    function showStatus(target, message, type = 'success') {
+        const element = document.getElementById(target + '-status');
+        if (!element) return;
+        element.innerText = message;
+        element.className = `status-message show status-${type}`;
+        setTimeout(() => {
+            element.className = 'status-message';
+        }, 3500);
+    }
+
+    async function loadMensaOverview() {
+        const w1snap = await getDoc(doc(db, 'plaene', 'woche1'));
+        const w2snap = await getDoc(doc(db, 'plaene', 'woche2'));
+        const overview = document.getElementById('mensa-overview');
+        const rows = [];
+
+        [w1snap, w2snap].forEach((snap, idx) => {
+            const weekName = idx === 0 ? 'Diese Woche' : 'Nächste Woche';
+            const content = [];
+            const weekStart = getWeekStartDate(idx + 1);
+            if (snap.exists()) {
+                const data = snap.data();
+                tage.forEach((t, i) => {
+                    const day = data[i];
+                    const date = new Date(weekStart);
+                    date.setDate(weekStart.getDate() + i);
+                    const dayLabel = `${t} ${formatDate(date)}`;
+                    content.push(`<div>${dayLabel}: ${day?.mensa ? 'Mensa' : 'Eigenes Essen'}</div>`);
+                });
+            } else {
+                content.push('<div>Kein Plan verfügbar</div>');
+            }
+            rows.push(`<div style="margin-bottom:12px;"><strong>${weekName}</strong>${content.join('')}</div>`);
+        });
+        overview.innerHTML = rows.join('');
+    }
+
+    window.setWeek = (w) => {
+        currentWeek = w;
+        document.getElementById('w1-btn').classList.toggle('active', w === 1);
+        document.getElementById('w2-btn').classList.toggle('active', w === 2);
+        updatePlanDates();
+        loadPlan();
+    };
+
+    async function loadPlan() {
+        const snap = await getDoc(doc(db, "plaene", "woche" + currentWeek));
+        if (snap.exists()) {
+            const data = snap.data();
+            tage.forEach((_, i) => {
+                document.getElementById(`mensa-${i}`).checked = data[i]?.mensa || false;
+                document.getElementById(`dish-${i}`).value = data[i]?.dish || "";
+                document.getElementById(`ing-${i}`).value = data[i]?.ing || "";
+            });
+        } else {
+            tage.forEach((_, i) => {
+                document.getElementById(`mensa-${i}`).checked = false;
+                document.getElementById(`dish-${i}`).value = "";
+                document.getElementById(`ing-${i}`).value = "";
+            });
+        }
+    }
+
+    window.savePlan = async () => {
+        const data = {};
+        tage.forEach((_, i) => {
+            data[i] = {
+                mensa: document.getElementById(`mensa-${i}`).checked,
+                dish: document.getElementById(`dish-${i}`).value,
+                ing: document.getElementById(`ing-${i}`).value
+            };
+        });
+        await setDoc(doc(db, "plaene", "woche" + currentWeek), data);
+        showStatus('plan', `Woche ${currentWeek} gespeichert!`, 'success');
+        loadMensaOverview();
+    };
+
+    // --- SMART SHOPPING LIST ---
+    function updateGlobalShopping() {
+        onSnapshot(doc(db, "plaene", "woche1"), (w1) => {
+            w1Data = w1;
+            renderShoppingList();
+        });
+        onSnapshot(doc(db, "plaene", "woche2"), (w2) => {
+            w2Data = w2;
+            renderShoppingList();
+        });
+        onSnapshot(doc(db, "plaene", "extras"), (ext) => {
+            extData = ext;
+            renderShoppingList();
+        });
+    }
+
+    function renderShoppingList() {
+        if (!w1Data || !w2Data || !extData) return; // Warte bis alle Daten da sind
+        const listDiv = document.getElementById('shopping-list');
+        let html = "";
+        const ingredientDates = {};
+
+        // Sammle von beiden Wochen
+        [w1Data, w2Data].forEach((snap, weekIdx) => {
+            if (snap.exists()) {
+                const monday = getWeekStartDate(weekIdx + 1);
+                Object.entries(snap.data()).forEach(([dayIndex, day]) => {
+                    if (!day.mensa && day.ing) {
+                        const date = new Date(monday);
+                        date.setDate(monday.getDate() + Number(dayIndex));
+                        const dateLabel = `${formatDate(date)} (${tage[dayIndex].slice(0,2)})`;
+                        day.ing.split(',').map(s => s.trim()).filter(s => s).forEach(item => {
+                            ingredientDates[item] = ingredientDates[item] || new Set();
+                            ingredientDates[item].add(dateLabel);
+                        });
+                    }
+                });
+            }
+        });
+
+        const uniqueIngs = Object.keys(ingredientDates).sort();
+        html += uniqueIngs.map(i => `
+            <div class="item-row">
+                <div class="check-box ${shoppingChecked[i] ? 'checked' : ''}" onclick="toggleShoppingItem('${i}')"></div>
+                <div style="flex:1">
+                    <div style="${shoppingChecked[i] ? 'text-decoration:line-through; color:gray;' : ''}">${i}</div>
+                    <div class="small-tag">${[...ingredientDates[i]].join(', ')}</div>
+                </div>
+                <button class="delete-btn" onclick="event.stopPropagation(); removeIngredient('${i}')">×</button>
+            </div>
+        `).join('');
+        
+        // Zusatzartikel
+        if (extData.exists()) {
+            html += extData.data().items.map((it, idx) => `
+                <div class="item-row">
+                    <div class="check-box ${shoppingChecked[it] ? 'checked' : ''}" onclick="toggleShoppingItem('${it}')"></div>
+                    <div style="flex:1">
+                        <div style="${shoppingChecked[it] ? 'text-decoration:line-through; color:gray;' : ''}">${it}</div>
+                        <div class="small-tag">Extra Artikel</div>
+                    </div>
+                    <button class="delete-btn" onclick="event.stopPropagation(); removeExtra(${idx})">×</button>
+                </div>
+            `).join('');
+        }
+        listDiv.innerHTML = html || "Keine Artikel auf der Liste.";
+    }
+
+    function saveShoppingState() {
+        localStorage.setItem('shoppingChecked', JSON.stringify(shoppingChecked));
+    }
+
+    window.toggleShoppingItem = (item) => {
+        console.log('Toggling item:', item, 'Current state:', shoppingChecked[item]);
+        shoppingChecked[item] = !shoppingChecked[item];
+        console.log('New state:', shoppingChecked[item]);
+        saveShoppingState();
+        renderShoppingList();
+    };
+
+    window.addExtraItem = async () => {
+        const input = document.getElementById('extra-item');
+        if (!input.value) return;
+        const snap = await getDoc(doc(db, "plaene", "extras"));
+        const current = snap.exists() ? snap.data().items : [];
+        await setDoc(doc(db, "plaene", "extras"), { items: [...current, input.value] });
+        input.value = "";
+    };
+
+    window.removeExtra = async (idx) => {
+        const snap = await getDoc(doc(db, "plaene", "extras"));
+        const current = snap.exists() ? snap.data().items : [];
+        current.splice(idx, 1);
+        await setDoc(doc(db, "plaene", "extras"), { items: current });
+    };
+
+    window.removeIngredient = async (item) => {
+        // Entferne aus Woche 1 und Woche 2
+        for (let week = 1; week <= 2; week++) {
+            const snap = await getDoc(doc(db, "plaene", "woche" + week));
+            if (snap.exists()) {
+                const data = snap.data();
+                const updated = {};
+                Object.keys(data).forEach(dayIndex => {
+                    const day = data[dayIndex];
+                    if (day.ing) {
+                        const ings = day.ing.split(',').map(s => s.trim()).filter(s => s !== item);
+                        updated[dayIndex] = { ...day, ing: ings.join(', ') };
+                    } else {
+                        updated[dayIndex] = day;
+                    }
+                });
+                await setDoc(doc(db, "plaene", "woche" + week), updated);
+            }
+        }
+        showStatus('shop', `Zutat "${item}" entfernt.`, 'success');
+        // Sicherstellen, dass die Liste sofort aktualisiert wird
+        renderShoppingList();
+    };
+
+    // --- PERSONAL SPACE (NOTES & TODOS) ---
+    window.accessSpace = async () => {
+        const name = document.getElementById('space-user').value.toLowerCase().trim();
+        const pass = document.getElementById('space-pass').value;
+        if (!name || !pass) return showStatus('space', 'Zugangsdaten fehlen!', 'error');
+
+        if (name === '1_5_1' && pass === 'admin') {
+            return adminLogin();
+        }
+
+        const ref = doc(db, "spaces", name);
+        const snap = await getDoc(ref);
+
+        if (snap.exists() && snap.data().pass !== pass) {
+            return showStatus('space', 'Falsches Passwort!', 'error');
+        }
+        if (!snap.exists()) await setDoc(ref, { pass, items: [] });
+
+        currentUserSpace = name;
+        currentSpaceOwner = name;
+        isAdminMode = false;
+        document.getElementById('space-login').classList.add('hidden');
+        document.getElementById('space-content').classList.remove('hidden');
+        document.getElementById('user-title').innerText = "Space: " + name;
+        document.getElementById('admin-panel').classList.add('hidden');
+        document.getElementById('admin-selected-user').innerHTML = '';
+        document.getElementById('edit-space-item-panel').classList.add('hidden');
+
+        const removeUserActive = document.querySelectorAll('.admin-user-button.active');
+        removeUserActive.forEach(btn => btn.classList.remove('active'));
+
+        onSnapshot(ref, (docSnap) => {
+            currentSpaceItems = docSnap.exists() ? docSnap.data().items || [] : [];
+            renderSpace(currentSpaceItems);
+        });
+        showStatus('space', 'Angemeldet als ' + name, 'success');
+    };
+
+    async function adminLogin() {
+        isAdminMode = true;
+        currentUserSpace = 'admin';
+        currentSpaceOwner = null;
+        document.getElementById('space-login').classList.add('hidden');
+        document.getElementById('space-content').classList.remove('hidden');
+        document.getElementById('user-title').innerText = 'Admin Space';
+        document.getElementById('admin-panel').classList.remove('hidden');
+        currentSpaceItems = [];
+        renderSpace([]);
+        loadAllSpaces();
+        showStatus('space', 'Admin angemeldet. Nutzer auswählen.', 'success');
+    }
+
+    async function loadAllSpaces() {
+        const snapshot = await getDocs(collection(db, 'spaces'));
+        const users = snapshot.docs.map(doc => doc.id).sort();
+        const list = document.getElementById('space-users');
+        list.innerHTML = users.map(user => `
+            <button class="admin-user-button" onclick="selectAdminUser('${user}')">${user}</button>
+        `).join('');
+    }
+
+    async function selectAdminUser(user) {
+        currentSpaceOwner = user;
+        currentUserSpace = 'admin';
+        const buttons = document.querySelectorAll('.admin-user-button');
+        buttons.forEach(btn => btn.classList.toggle('active', btn.innerText === user));
+        document.getElementById('user-title').innerText = `Admin: ${user}`;
+        document.getElementById('admin-selected-user').innerText = 'Bearbeite Daten von ' + user;
+        document.getElementById('edit-space-item-panel').classList.add('hidden');
+
+        const ref = doc(db, 'spaces', user);
+        const snap = await getDoc(ref);
+        currentSpaceItems = snap.exists() ? snap.data().items || [] : [];
+        renderSpace(currentSpaceItems);
+    }
+
+    function renderSpace(items) {
+        if (!items) items = currentSpaceItems;
+
+        const container = document.getElementById('space-items');
+        const query = document.getElementById('search-space').value.toLowerCase();
+
+        if (isAdminMode && !currentSpaceOwner) {
+            container.innerHTML = '<div>Wähle einen Nutzer, um dessen Notizen zu sehen.</div>';
+            return;
+        }
+
+        const filtered = items
+            .filter(it => {
+                const text = `${it.title || ''} ${it.body || ''}`.toLowerCase();
+                return text.includes(query);
+            })
+            .sort((a, b) => b.id - a.id);
+
+        if (!filtered.length) {
+            container.innerHTML = '<div>Keine Notizen gefunden.</div>';
+            return;
+        }
+
+        container.innerHTML = filtered.map(it => {
+            const combined = `${it.title || ''} ${it.body || ''}`;
+            const tags = combined.match(/#\w+/g) || [];
+            const isTodo = combined.toLowerCase().includes('#todo');
+            return `
+                <div class="item-row" onclick="handleSpaceItemClick(${it.id})">
+                    ${isTodo ? `<div class="check-box ${it.done ? 'checked' : ''}"></div>` : '📝'}
+                    <div style="flex:1; cursor:pointer;">
+                        <strong style="display:block; ${it.done ? 'text-decoration:line-through; color:gray;' : ''}">${it.title || 'Ohne Titel'}</strong>
+                        <div style="${it.done ? 'text-decoration:line-through; color:gray;' : ''}">${it.body || ''}</div>
+                        <div>${tags.map(t => `<span class="tag-badge">${t}</span>`).join('')}</div>
+                    </div>
+                    <button class="delete-btn" onclick="event.stopPropagation(); deleteSpaceItem(${it.id})">×</button>
+                </div>
+            `;
+        }).join('');
+    }
+
+    window.handleSpaceItemClick = async (id) => {
+        if (!currentSpaceOwner) return;
+        const ref = doc(db, "spaces", currentSpaceOwner);
+        const snap = await getDoc(ref);
+        if (!snap.exists()) return;
+
+        const items = snap.data().items || [];
+        const item = items.find(it => it.id === id);
+        if (!item) return;
+
+        const combined = `${item.title || ''} ${item.body || ''}`;
+        const isTodo = combined.toLowerCase().includes('#todo');
+
+        if (isTodo) {
+            const updated = items.map(it => it.id === id ? { ...it, done: !it.done } : it);
+            await setDoc(ref, { items: updated }, { merge: true });
+            if (isAdminMode) {
+                currentSpaceItems = updated;
+                renderSpace(updated);
+            }
+            return;
+        }
+
+        openEditSpaceItem(item);
+    };
+
+    function openEditSpaceItem(item) {
+        currentEditItemId = item.id;
+        document.getElementById('edit-note-title').value = item.title || '';
+        document.getElementById('edit-note-body').value = item.body || '';
+        document.getElementById('edit-space-item-panel').classList.remove('hidden');
+    }
+
+    window.saveSpaceItemEdit = async () => {
+        if (!currentSpaceOwner) return;
+        const title = document.getElementById('edit-note-title').value.trim();
+        const body = document.getElementById('edit-note-body').value.trim();
+        if (!currentEditItemId) return showStatus('space', 'Keine Notiz ausgewählt.', 'error');
+        if (!title && !body) return showStatus('space', 'Titel oder Notiz erforderlich.', 'error');
+
+        const ref = doc(db, 'spaces', currentSpaceOwner);
+        const snap = await getDoc(ref);
+        if (!snap.exists()) return;
+
+        const items = snap.data().items || [];
+        const updated = items.map(it => it.id === currentEditItemId ? { ...it, title, body } : it);
+        await setDoc(ref, { items: updated }, { merge: true });
+        currentSpaceItems = updated;
+        renderSpace(updated);
+        document.getElementById('edit-space-item-panel').classList.add('hidden');
+        currentEditItemId = null;
+        showStatus('space', 'Notiz gespeichert.', 'success');
+    };
+
+    window.cancelSpaceItemEdit = () => {
+        currentEditItemId = null;
+        document.getElementById('edit-space-item-panel').classList.add('hidden');
+    };
+
+    window.addSpaceItem = async () => {
+        if (!currentSpaceOwner) return showStatus('space', 'Wähle zuerst einen Nutzer aus.', 'error');
+        const titleInput = document.getElementById('new-note-title');
+        const bodyInput = document.getElementById('new-note-body');
+        const title = titleInput.value.trim();
+        const body = bodyInput.value.trim();
+        if (!title && !body) return showStatus('space', 'Titel oder Notiz erforderlich.', 'error');
+
+        const ref = doc(db, 'spaces', currentSpaceOwner);
+        const snap = await getDoc(ref);
+        if (!snap.exists()) return showStatus('space', 'Space nicht gefunden.', 'error');
+        const items = snap.data().items || [];
+        items.push({ id: Date.now(), title, body, done: false });
+        await setDoc(ref, { items }, { merge: true });
+        currentSpaceItems = items;
+        renderSpace(items);
+        titleInput.value = '';
+        bodyInput.value = '';
+        showStatus('space', 'Eintrag hinzugefügt.', 'success');
+    };
+
+    window.toggleSpaceItem = async (id) => {
+        if (!currentSpaceOwner) return;
+        const ref = doc(db, "spaces", currentSpaceOwner);
+        const snap = await getDoc(ref);
+        if (!snap.exists()) return;
+        const items = snap.data().items || [];
+        const updated = items.map(it => it.id === id ? { ...it, done: !it.done } : it);
+        await setDoc(ref, { items: updated }, { merge: true });
+        currentSpaceItems = updated;
+        renderSpace(updated);
+    };
+
+    window.deleteSpaceItem = async (id) => {
+        if (!currentSpaceOwner) return;
+        const ref = doc(db, "spaces", currentSpaceOwner);
+        const snap = await getDoc(ref);
+        if (!snap.exists()) return;
+        const items = (snap.data().items || []).filter(it => it.id !== id);
+        await setDoc(ref, { items }, { merge: true });
+        currentSpaceItems = items;
+        renderSpace(items);
+    };
+
+    window.updateSpaceCredentials = async () => {
+        if (isAdminMode) return showStatus('space', 'Admin kann diese Einstellung nicht ändern.', 'error');
+        const newName = document.getElementById('edit-space-user').value.toLowerCase().trim();
+        const newPass = document.getElementById('edit-space-pass').value;
+        if (!newName && !newPass) return showStatus('space', 'Bitte neuen Benutzernamen oder neues Passwort eingeben.', 'error');
+
+        const ref = doc(db, "spaces", currentSpaceOwner);
+        const snap = await getDoc(ref);
+        if (!snap.exists()) return showStatus('space', 'Space nicht gefunden.', 'error');
+
+        const currentItems = snap.data().items || [];
+        const currentPass = snap.data().pass || '';
+        const passValue = newPass || currentPass;
+
+        if (newName && newName !== currentSpaceOwner) {
+            const newRef = doc(db, "spaces", newName);
+            const targetSnap = await getDoc(newRef);
+            if (targetSnap.exists()) return showStatus('space', 'Dieser Benutzername ist bereits vergeben.', 'error');
+
+            await setDoc(newRef, { items: currentItems, pass: passValue });
+            await deleteDoc(ref);
+            showStatus('space', 'Benutzername geändert. Bitte melde dich erneut an.', 'success');
+            location.reload();
+            return;
+        }
+
+        await setDoc(ref, { pass: passValue }, { merge: true });
+        document.getElementById('edit-space-pass').value = '';
+        showStatus('space', 'Passwort aktualisiert.', 'success');
+    };
+
+    // INIT
+    renderPlanInputs();
+    updatePlanDates();
+    loadPlan();
+    loadMensaOverview();
+    updateGlobalShopping();
+
+</script>
+</body>
+</html>

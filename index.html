@@ -668,6 +668,11 @@
                 <h3>⏱️ Küchen-Timer</h3>
                 <input type="number" id="timer-minutes" placeholder="Minuten eingeben">
                 <button class="btn btn-small" onclick="startTimer()">Timer starten</button>
+                <div style="display:flex; align-items:center; gap:10px; margin-top:12px;">
+                    <label for="timer-volume" style="font-size:14px; margin:0;">Lautstärke:</label>
+                    <input type="range" id="timer-volume" min="0" max="100" step="1" value="100" oninput="setTimerVolume(this.value)">
+                    <span id="timer-volume-value" style="font-size:14px; width:45px; text-align:right;">100%</span>
+                </div>
                 <div id="timer-display" style="font-size:32px; margin:20px 0; text-align:center; font-weight:bold;">00:00</div>
                 <button class="btn btn-small" style="background:#ff3b30;" onclick="stopTimer()">Timer stoppen</button>
                 <div style="margin-top:20px; font-size:14px; color:var(--gray);">
@@ -924,6 +929,9 @@
     let currentEditRecipeId = null;
     let timerInterval = null;
     let timerEndTime = null;
+    let timerWakeLock = null;
+    let timerVolume = parseFloat(localStorage.getItem('cookNowTimerVolume') || '1');
+    let timerGainNode = null;
 
     // TAB NAVIGATION
     window.showTab = (id, btn, isDesktop) => {
@@ -1558,9 +1566,74 @@
     function startTimerFromMinutes(minutes) {
         stopTimer();
         timerEndTime = Date.now() + minutes * 60 * 1000;
+        saveTimerState();
         updateTimerDisplay();
         timerInterval = setInterval(updateTimerDisplay, 1000);
+        requestWakeLock();
         showStatus('recipes', `Timer für ${minutes} Minuten gestartet.`, 'success');
+    }
+
+    async function requestWakeLock() {
+        if ('wakeLock' in navigator && !timerWakeLock) {
+            try {
+                timerWakeLock = await navigator.wakeLock.request('screen');
+                timerWakeLock.addEventListener('release', () => {
+                    timerWakeLock = null;
+                });
+            } catch (err) {
+                console.warn('Wake Lock nicht möglich:', err);
+            }
+        }
+    }
+
+    async function releaseWakeLock() {
+        if (timerWakeLock) {
+            try {
+                await timerWakeLock.release();
+            } catch (err) {
+                console.warn('Wake Lock Release fehlgeschlagen:', err);
+            }
+            timerWakeLock = null;
+        }
+    }
+
+    function saveTimerState() {
+        if (timerEndTime) {
+            localStorage.setItem('cookNowTimerEnd', timerEndTime.toString());
+        } else {
+            localStorage.removeItem('cookNowTimerEnd');
+        }
+    }
+
+    function restoreTimerState() {
+        const stored = localStorage.getItem('cookNowTimerEnd');
+        if (!stored) return;
+        const end = parseInt(stored, 10);
+        if (isNaN(end)) return;
+
+        if (Date.now() >= end) {
+            localStorage.removeItem('cookNowTimerEnd');
+            document.getElementById('timer-display').innerText = '00:00';
+            return;
+        }
+
+        timerEndTime = end;
+        if (!timerInterval) {
+            timerInterval = setInterval(updateTimerDisplay, 1000);
+        }
+        requestWakeLock();
+    }
+
+    function handleVisibilityChange() {
+        if (document.visibilityState === 'visible' && timerEndTime) {
+            if (Date.now() >= timerEndTime) {
+                playTimerSound();
+                stopTimer();
+            } else {
+                updateTimerDisplay();
+                requestWakeLock();
+            }
+        }
     }
 
     window.startTimer = () => {
@@ -1575,6 +1648,8 @@
             timerInterval = null;
         }
         timerEndTime = null;
+        saveTimerState();
+        releaseWakeLock();
         document.getElementById('timer-display').innerText = '00:00';
         showStatus('recipes', 'Timer gestoppt.', 'success');
     };
@@ -1590,6 +1665,8 @@
             stopTimer();
         }
     }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     // Recipe Details Modal
     let currentRecipeDetails = null;
@@ -1625,6 +1702,9 @@
     function initAudio() {
         if (!audioContext) {
             audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            timerGainNode = audioContext.createGain();
+            timerGainNode.gain.value = timerVolume;
+            timerGainNode.connect(audioContext.destination);
             createTimerSound();
         }
     }
@@ -1660,28 +1740,11 @@
             audioContext.resume();
         }
 
-        const source = audioContext.createBufferSource();
-        source.buffer = timerSoundBuffer;
-        source.connect(audioContext.destination);
-
-        // Play the sound 3 times with short pauses
-        let playCount = 0;
-        const playNext = () => {
-            if (playCount < 3) {
-                source.start(audioContext.currentTime);
-                playCount++;
-                if (playCount < 3) {
-                    setTimeout(playNext, 300); // 300ms pause between beeps
-                }
-            }
-        };
-
-        // Create new source for each play to avoid issues
         const playSound = () => {
-            const newSource = audioContext.createBufferSource();
-            newSource.buffer = timerSoundBuffer;
-            newSource.connect(audioContext.destination);
-            newSource.start();
+            const source = audioContext.createBufferSource();
+            source.buffer = timerSoundBuffer;
+            source.connect(timerGainNode || audioContext.destination);
+            source.start();
         };
 
         playSound();
@@ -1693,6 +1756,22 @@
     document.addEventListener('click', initAudio, { once: true });
     document.addEventListener('touchstart', initAudio, { once: true });
 
+    window.setTimerVolume = (value) => {
+        timerVolume = Math.max(0, Math.min(1, parseFloat(value) / 100));
+        localStorage.setItem('cookNowTimerVolume', timerVolume.toString());
+        if (timerGainNode) timerGainNode.gain.value = timerVolume;
+        const label = document.getElementById('timer-volume-value');
+        if (label) label.innerText = `${Math.round(timerVolume * 100)}%`;
+    };
+
+    function syncTimerVolumeUI() {
+        const slider = document.getElementById('timer-volume');
+        const label = document.getElementById('timer-volume-value');
+        if (slider) slider.value = Math.round(timerVolume * 100);
+        if (label) label.innerText = `${Math.round(timerVolume * 100)}%`;
+        if (timerGainNode) timerGainNode.gain.value = timerVolume;
+    }
+
     // INIT
     renderPlanInputs();
     updatePlanDates();
@@ -1701,6 +1780,8 @@
     updateGlobalShopping();
     loadTheme();
     loadSharedRecipes();
+    restoreTimerState();
+    syncTimerVolumeUI();
 
     // ===== SERVICE WORKER REGISTRATION =====
     if ('serviceWorker' in navigator) {

@@ -3,19 +3,401 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#007aff">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="cook_now">
+    <link rel="manifest" href="data:application/manifest+json,{%22name%22:%22cook_now%22,%22short_name%22:%22cook%22,%22icons%22:[{%22src%22:%22https://img.freepik.com/free-vector/flat-design-illustration-kitchen-cooking-elements_52683-114726.jpg?t=st=1775672507~exp=1775676107~hmac=552d4d67eaf904dcafec06227bdf228d0448f1ae29ca23a49823372d0478233a&w=1480%22,%22sizes%22:%22192x192%22,%22type%22:%22image/jpeg%22}],%22start_url%22:%22./%22,%22display%22:%22standalone%22,%22background_color%22:%22#ffffff%22,%22theme_color%22:%22#007aff%22}">
+    <link rel="icon" type="image/jpeg" href="https://img.freepik.com/free-vector/flat-design-illustration-kitchen-cooking-elements_52683-114726.jpg?t=st=1775672507~exp=1775676107~hmac=552d4d67eaf904dcafec06227bdf228d0448f1ae29ca23a49823372d0478233a&w=64">
+    <link rel="apple-touch-icon" href="https://img.freepik.com/free-vector/flat-design-illustration-kitchen-cooking-elements_52683-114726.jpg?t=st=1775672507~exp=1775676107~hmac=552d4d67eaf904dcafec06227bdf228d0448f1ae29ca23a49823372d0478233a&w=180">
     <title>cook_now</title>
     <style>
-        :root { --primary: #007aff; --bg: #f2f2f7; --card: #ffffff; --text: #1c1c1e; --gray: #8e8e93; --accent: #ff9500; --danger: #ff3b30; }
+        :root { 
+            --primary: #007aff; 
+            --bg: #f2f2f7; 
+            --card: rgba(255, 255, 255, 0.95); 
+            --text: #1c1c1e; 
+            --gray: #8e8e93; 
+            --accent: #ff9500; 
+            --danger: #ff3b30;
+            --glass-blur: 20px;
+            --glass-tint: rgba(255, 255, 255, 0.1);
+        }
+        
+        @media (prefers-color-scheme: dark) {
+            :root { 
+                --bg: #000000; 
+                --card: rgba(30, 30, 30, 0.95); 
+                --text: #f5f5f7; 
+                --gray: #8e8e93;
+                --glass-tint: rgba(0, 0, 0, 0.2);
+            }
+        }
+        
+        html.dark-mode {
+            --bg: #000000; 
+            --card: rgba(30, 30, 30, 0.95); 
+            --text: #f5f5f7;
+            --glass-tint: rgba(0, 0, 0, 0.2);
+        }
+        
+        html.light-mode {
+            --bg: #f2f2f7; 
+            --card: rgba(255, 255, 255, 0.95); 
+            --text: #1c1c1e;
+            --glass-tint: rgba(255, 255, 255, 0.1);
+        }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 90px; }
+        body { 
+            font-family: -apple-system, system-ui, sans-serif; 
+            background: var(--bg); 
+            color: var(--text); 
+            margin: 0; 
+            padding-bottom: 120px;
+            transition: background 0.3s, color 0.3s;
+        }
+        
+        /* Desktop Responsive Layout */
+        @media (min-width: 1024px) {
+            body {
+                padding-bottom: 0;
+                padding-left: 280px;
+                display: flex;
+                flex-direction: row;
+            }
+            
+            .desktop-wrapper {
+                flex: 1;
+            }
+        }
+        
+        /* Desktop Sidebar Navigation */
+        .desktop-nav {
+            display: none;
+        }
+        
+        @media (min-width: 1024px) {
+            .desktop-nav {
+                display: flex;
+                position: fixed;
+                left: 0;
+                top: 0;
+                bottom: 0;
+                width: 280px;
+                background: rgba(255, 255, 255, 0.25);
+                backdrop-filter: blur(30px) saturate(200%);
+                -webkit-backdrop-filter: blur(30px) saturate(200%);
+                border-right: 1px solid var(--glass-tint);
+                flex-direction: column;
+                padding: 24px 16px;
+                gap: 12px;
+                z-index: 999;
+                box-shadow: 4px 0 20px rgba(0, 0, 0, 0.08);
+            }
+            
+            html.dark-mode .desktop-nav {
+                background: rgba(30, 30, 30, 0.25);
+            }
+            
+            .desktop-nav-header {
+                font-size: 28px;
+                font-weight: 700;
+                margin-bottom: 24px;
+                padding: 12px 16px;
+                letter-spacing: -1px;
+            }
+            
+            .desktop-nav-item {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                padding: 14px 16px;
+                border-radius: 12px;
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid var(--glass-tint);
+                color: var(--text);
+                cursor: pointer;
+                transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+                font-size: 15px;
+                font-weight: 500;
+            }
+            
+            .desktop-nav-item:hover {
+                background: rgba(255, 255, 255, 0.1);
+                transform: translateX(4px);
+            }
+            
+            .desktop-nav-item.active {
+                background: rgba(0, 122, 255, 0.15);
+                color: var(--primary);
+                border-color: var(--primary);
+                box-shadow: 0 4px 12px rgba(0, 122, 255, 0.2);
+            }
+            
+            .desktop-nav-item span {
+                font-size: 20px;
+            }
+            
+            .desktop-nav-settings {
+                margin-top: auto;
+                border-top: 1px solid var(--glass-tint);
+                padding-top: 16px;
+            }
+            
+            .desktop-settings-btn {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                padding: 14px 16px;
+                border-radius: 12px;
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid var(--glass-tint);
+                color: var(--text);
+                cursor: pointer;
+                transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+                font-size: 15px;
+                font-weight: 500;
+                width: 100%;
+            }
+            
+            .desktop-settings-btn:hover {
+                background: rgba(255, 255, 255, 0.1);
+                transform: translateX(4px);
+            }
+        }
+        
+        html.dark-mode .desktop-nav-item {
+            background: rgba(30, 30, 30, 0.3);
+        }
+        
+        html.dark-mode .desktop-nav-item:hover {
+            background: rgba(30, 30, 30, 0.4);
+        }
+        
+        html.dark-mode .desktop-settings-btn {
+            background: rgba(30, 30, 30, 0.3);
+        }
+        
+        html.dark-mode .desktop-settings-btn:hover {
+            background: rgba(30, 30, 30, 0.4);
+        }
+        
+        /* Liquid Glass Effects */
+        .glass-effect {
+            background: var(--card);
+            backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+            -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+            border: 1px solid var(--glass-tint);
+            border-radius: 24px;
+        }
         
         /* Layout & Navigation */
-        .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(255,255,255,0.8); backdrop-filter: blur(20px); display: flex; border-top: 1px solid #d1d1d6; z-index: 1000; padding: 10px 0; }
-        .nav-item { flex: 1; border: none; background: none; font-size: 11px; display: flex; flex-direction: column; align-items: center; color: var(--gray); cursor: pointer; }
-        .nav-item.active { color: var(--primary); font-weight: bold; }
-        .nav-item span { font-size: 24px; margin-bottom: 2px; }
+        /* Apple Notes-Style Navigation Bar - Mobile Only */
+        .nav-bar { 
+            position: fixed; 
+            bottom: 16px; 
+            left: 12px; 
+            right: 12px; 
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(30px) saturate(200%) brightness(1.1);
+            -webkit-backdrop-filter: blur(30px) saturate(200%) brightness(1.1);
+            display: flex; 
+            align-items: center;
+            justify-content: space-around;
+            border: 1px solid var(--glass-tint);
+            border-radius: 28px;
+            z-index: 1000; 
+            padding: 12px 8px;
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.12),
+                0 0 0 1px rgba(255, 255, 255, 0.2) inset,
+                0 -4px 12px rgba(0, 0, 0, 0.05);
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        html.dark-mode .nav-bar {
+            background: rgba(30, 30, 30, 0.25);
+        }
+        
+        @media (min-width: 1024px) {
+            .nav-bar {
+                display: none;
+            }
+        }
+        
+        .nav-item { 
+            flex: 1; 
+            border: none; 
+            background: rgba(255, 255, 255, 0.1);
+            font-size: 11px; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center;
+            color: var(--gray); 
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 18px;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .nav-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), transparent);
+            opacity: 0;
+            transition: opacity 0.3s;
+            border-radius: 18px;
+        }
+        
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: scale(1.08);
+        }
+        
+        .nav-item:active {
+            transform: scale(0.92);
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .nav-item.active { 
+            color: var(--primary); 
+            font-weight: 600;
+            background: rgba(0, 122, 255, 0.15);
+            box-shadow: 0 4px 12px rgba(0, 122, 255, 0.25);
+        }
+        
+        .nav-item.active::before {
+            opacity: 1;
+        }
+        
+        .nav-item span { 
+            font-size: 24px; 
+            margin-bottom: 4px;
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            display: block;
+        }
+        
+        .nav-item:active span {
+            transform: scale(0.85);
+        }
+        
+        .settings-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            cursor: pointer;
+            font-size: 20px;
+            padding: 8px 12px;
+            color: var(--text);
+            border-radius: 18px;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .settings-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: scale(1.08);
+        }
+        
+        .settings-btn:active { 
+            transform: scale(0.92);
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        html.dark-mode .nav-item {
+            background: rgba(30, 30, 30, 0.3);
+        }
+        
+        html.dark-mode .nav-item:hover {
+            background: rgba(30, 30, 30, 0.4);
+        }
+        
+        html.dark-mode .nav-item:active {
+            background: rgba(30, 30, 30, 0.5);
+        }
+        
+        html.dark-mode .settings-btn {
+            background: rgba(30, 30, 30, 0.3);
+        }
+        
+        html.dark-mode .settings-btn:hover {
+            background: rgba(30, 30, 30, 0.4);
+        }
+        
+        /* Navbar entrance animation */
+        @keyframes navbarSlideUp {
+            from {
+                transform: translateY(120px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        .nav-bar {
+            animation: navbarSlideUp 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+        
+        /* Button press effect */
+        @keyframes buttonPress {
+            0% { transform: scale(1); }
+            50% { transform: scale(0.92); }
+            100% { transform: scale(1); }
+        }
 
-        .container { padding: 15px; max-width: 500px; margin: auto; }
+        .container { 
+            padding: 15px; 
+            max-width: 500px; 
+            margin: auto;
+        }
+        
+        @media (min-width: 1024px) {
+            .container {
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 24px 40px;
+            }
+        }
+
+        /* Responsive Header */
+        h1 {
+            transition: font-size 0.3s ease;
+        }
+        
+        @media (min-width: 1024px) {
+            h1 {
+                font-size: 40px !important;
+                margin-bottom: 32px !important;
+            }
+        }
+        
+        /* View Animations */
+        .view {
+            animation: fadeIn 0.4s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
 
         .status-message { display: none; padding: 10px 12px; margin-bottom: 12px; border-radius: 12px; font-size: 14px; line-height: 1.4; }
         .status-message.show { display: block; }
@@ -24,17 +406,73 @@
         .small-tag { font-size: 12px; color: var(--gray); margin-left: 6px; }
         .space-input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
         .space-input-row textarea { resize: vertical; }
-        .admin-panel { border: 1px solid #e5e5ea; border-radius: 14px; padding: 12px; margin-top: 15px; background: #fafafa; }
+        .admin-panel { 
+            background: var(--card);
+            backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+            -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+            border: 1px solid var(--glass-tint); 
+            border-radius: 14px; 
+            padding: 12px; 
+            margin-top: 15px;
+        }
         .admin-list { max-height: 160px; overflow:auto; margin-bottom: 12px; }
         .admin-user-button { display:block; width:100%; text-align:left; padding:10px 12px; border:none; border-radius:10px; background:#fff; margin-bottom:6px; cursor:pointer; }
         .admin-user-button.active { border:1px solid var(--primary); }
-        .card { background: var(--card); border-radius: 14px; padding: 16px; margin-bottom: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .card { 
+            background: var(--card);
+            backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+            -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+            border: 1px solid var(--glass-tint);
+            border-radius: 20px; 
+            padding: 16px; 
+            margin-bottom: 15px; 
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s;
+        }
+        .card:hover { box-shadow: 0 6px 25px rgba(0, 0, 0, 0.08); }
         .hidden { display: none !important; }
         
         /* Inputs & Buttons */
-        input, select, textarea { width: 100%; padding: 12px; border: 1px solid #e5e5ea; border-radius: 10px; font-size: 16px; margin-bottom: 8px; background: #f9f9f9; }
-        .btn { background: var(--primary); color: white; border: none; padding: 14px; border-radius: 10px; width: 100%; font-weight: 700; font-size: 16px; cursor: pointer; transition: 0.2s; }
-        .btn:active { opacity: 0.7; }
+        input, select, textarea { 
+            width: 100%; 
+            padding: 12px; 
+            border: 1px solid var(--glass-tint); 
+            border-radius: 12px; 
+            font-size: 16; 
+            margin-bottom: 8px; 
+            background: rgba(255, 255, 255, 0.5);
+            color: var(--text);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            transition: all 0.2s;
+        }
+        html.dark-mode input,
+        html.dark-mode select,
+        html.dark-mode textarea {
+            background: rgba(30, 30, 30, 0.5);
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+        }
+        .btn { 
+            background: var(--primary); 
+            color: white; 
+            border: none; 
+            padding: 14px; 
+            border-radius: 12px; 
+            width: 100%; 
+            font-weight: 700; 
+            font-size: 16px; 
+            cursor: pointer; 
+            transition: 0.2s;
+            box-shadow: 0 4px 15px rgba(0, 122, 255, 0.3);
+        }
+        .btn:active { 
+            opacity: 0.85;
+            transform: scale(0.98);
+        }
         .btn-small { padding: 6px 12px; font-size: 12px; width: auto; margin: 0; }
 
         /* Planer */
@@ -52,6 +490,30 @@
     </style>
 </head>
 <body>
+
+<!-- Desktop Sidebar Navigation -->
+<nav class="desktop-nav">
+    <div class="desktop-nav-header">cook_now</div>
+    <button class="desktop-nav-item active" onclick="showTab('plan', this, true)">
+        <span>📅</span>
+        <span>Vorbereitung</span>
+    </button>
+    <button class="desktop-nav-item" onclick="showTab('shop', this, true)">
+        <span>🛒</span>
+        <span>Einkaufsliste</span>
+    </button>
+    <button class="desktop-nav-item" onclick="showTab('space', this, true)">
+        <span>👤</span>
+        <span>Notizen</span>
+    </button>
+    
+    <div class="desktop-nav-settings">
+        <button class="desktop-settings-btn" onclick="toggleSettings()">
+            <span>⚙️</span>
+            <span>Einstellungen</span>
+        </button>
+    </div>
+</nav>
 
 <div class="container">
     <h1 style="font-size: 32px; letter-spacing: -1px; margin-bottom: 20px;">cook_now</h1>
@@ -127,13 +589,204 @@
     </div>
 </div>
 
+<!-- Sources & Attribution Section -->
+<div class="container" style="padding-top: 30px; margin-bottom: 30px;">
+    <div class="card" style="background: rgba(0, 122, 255, 0.05); border: 1px solid var(--glass-tint);">
+        <h3 style="margin-top: 0; font-size: 14px; font-weight: 600;">📚 Quellen & Attribution</h3>
+        <div style="font-size: 13px; line-height: 1.6; color: var(--gray);">
+            <p style="margin: 8px 0;">
+                <strong>🎨 Icon & Design:</strong><br>
+                Kitchen Cooking Elements Illustration<br>
+                © Freepik<br>
+                <a href="https://www.freepik.com/free-vector/flat-design-illustration-kitchen-cooking-elements_52683-114726.jpg" target="_blank" rel="noopener noreferrer" style="color: var(--primary); text-decoration: none; word-break: break-all;">Freepik Link ↗</a>
+            </p>
+            <p style="margin: 8px 0;">
+                <strong>🎯 Design Language:</strong><br>
+                iOS 26 Glassmorphic Design<br>
+                Liquid Glass Effect with Backdrop Blur
+            </p>
+            <p style="margin: 8px 0;">
+                <strong>🛠️ Technology:</strong><br>
+                HTML5 • CSS3 • JavaScript ES6<br>
+                Firebase Firestore<br>
+                PWA (Progressive Web App)
+            </p>
+            <p style="margin: 8px 0;">
+                <strong>🌓 Features:</strong><br>
+                • Dark/Light Mode Toggle<br>
+                • Glassmorphic UI Components<br>
+                • PWA Install Support<br>
+                • Responsive Design
+            </p>
+        </div>
+    </div>
+</div>
+
 <nav class="nav-bar">
     <button class="nav-item active" onclick="showTab('plan', this)"><span>📅</span>Plan</button>
     <button class="nav-item" onclick="showTab('shop', this)"><span>🛒</span>Einkauf</button>
     <button class="nav-item" onclick="showTab('space', this)"><span>👤</span>Space</button>
+    <button class="settings-btn" onclick="toggleSettings()" title="Einstellungen">⚙️</button>
 </nav>
 
+<!-- Settings Modal -->
+<div id="settings-modal" class="settings-modal hidden">
+    <div class="settings-content">
+        <h3>Einstellungen</h3>
+        <div class="setting-item">
+            <label>🌓 Design</label>
+            <div class="theme-toggle">
+                <button id="light-theme-btn" class="theme-btn active" onclick="setTheme('light')">Hell</button>
+                <button id="dark-theme-btn" class="theme-btn" onclick="setTheme('dark')">Dunkel</button>
+                <button id="auto-theme-btn" class="theme-btn" onclick="setTheme('auto')">Auto</button>
+            </div>
+        </div>
+        <div class="setting-item">
+            <p style="font-size: 12px; color: var(--gray); margin: 0; padding-top: 15px; border-top: 1px solid var(--glass-tint);">
+                <strong>Cook Now PWA v1.0</strong><br>
+                <strong>Icon:</strong> Kitchen Cooking Elements by Freepik<br>
+                <strong>Design:</strong> iOS 26 Glassmorphic<br>
+                <a href="https://www.freepik.com/free-vector/flat-design-illustration-kitchen-cooking-elements_52683-114726.jpg" target="_blank" style="color: var(--primary); text-decoration: none;">Freepik Icon Source</a>
+            </p>
+        </div>
+        <button class="close-modal-btn" onclick="toggleSettings()">✕</button>
+    </div>
+</div>
+
+<style>
+    .settings-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.3);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        z-index: 2000;
+        display: flex;
+        align-items: flex-end;
+        animation: slideUp 0.3s ease-out;
+    }
+    
+    .settings-modal.hidden {
+        display: none;
+    }
+    
+    @keyframes slideUp {
+        from { transform: translateY(100%); }
+        to { transform: translateY(0); }
+    }
+    
+    .settings-content {
+        background: var(--card);
+        backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+        -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+        width: 100%;
+        border-radius: 24px 24px 0 0;
+        padding: 24px 16px 16px;
+        border: 1px solid var(--glass-tint);
+        border-bottom: none;
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+        position: relative;
+        max-height: 80vh;
+        overflow-y: auto;
+    }
+    
+    .settings-content h3 {
+        margin: 0 0 16px 0;
+        font-size: 18px;
+        font-weight: 600;
+    }
+    
+    .setting-item {
+        margin-bottom: 20px;
+    }
+    
+    .setting-item label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 8px;
+        font-size: 14px;
+    }
+    
+    .theme-toggle {
+        display: flex;
+        gap: 8px;
+    }
+    
+    .theme-btn {
+        flex: 1;
+        padding: 10px;
+        border: 2px solid var(--glass-tint);
+        background: rgba(255, 255, 255, 0.3);
+        color: var(--text);
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+    
+    .theme-btn.active {
+        background: var(--primary);
+        border-color: var(--primary);
+        color: white;
+        box-shadow: 0 4px 15px rgba(0, 122, 255, 0.3);
+    }
+    
+    .close-modal-btn {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        background: none;
+        border: none;
+        font-size: 20px;
+        cursor: pointer;
+        color: var(--text);
+        padding: 4px;
+    }
+</style>
+
 <script type="module">
+    // ===== THEME MANAGEMENT =====
+    function loadTheme() {
+        const saved = localStorage.getItem('cook-now-theme') || 'auto';
+        setTheme(saved);
+    }
+    
+    window.setTheme = (mode) => {
+        localStorage.setItem('cook-now-theme', mode);
+        const html = document.documentElement;
+        
+        if (mode === 'auto') {
+            html.classList.remove('light-mode', 'dark-mode');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            if (prefersDark) html.classList.add('dark-mode');
+        } else {
+            html.classList.remove('light-mode', 'dark-mode');
+            html.classList.add(mode + '-mode');
+        }
+        
+        // Update button states
+        document.getElementById('light-theme-btn').classList.toggle('active', mode === 'light');
+        document.getElementById('dark-theme-btn').classList.toggle('active', mode === 'dark');
+        document.getElementById('auto-theme-btn').classList.toggle('active', mode === 'auto');
+    };
+    
+    window.toggleSettings = () => {
+        document.getElementById('settings-modal').classList.toggle('hidden');
+    };
+    
+    // Close settings on outside click
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('settings-modal').addEventListener('click', (e) => {
+            if (e.target.id === 'settings-modal') {
+                document.getElementById('settings-modal').classList.add('hidden');
+            }
+        });
+    });
+    
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
     import { getFirestore, doc, setDoc, getDoc, onSnapshot, deleteDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
@@ -158,9 +811,15 @@
     let isAdminMode = false;
 
     // TAB NAVIGATION
-    window.showTab = (id, btn) => {
+    window.showTab = (id, btn, isDesktop) => {
         document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
-        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        if (!isDesktop) {
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.querySelectorAll('.desktop-nav-item').forEach(n => n.classList.remove('active'));
+        } else {
+            document.querySelectorAll('.desktop-nav-item').forEach(n => n.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        }
         document.getElementById('view-' + id).classList.remove('hidden');
         btn.classList.add('active');
     };
@@ -661,6 +1320,7 @@
     loadPlan();
     loadMensaOverview();
     updateGlobalShopping();
+    loadTheme();
 
 </script>
 </body>

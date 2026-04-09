@@ -1022,8 +1022,14 @@
                             id="search-recipes"
                             placeholder="Rezepte suchen..."
                             oninput="renderRecipes()"
+                            onkeydown="
+                                if (event.key === 'Enter') renderRecipes();
+                            "
                             style="flex: 1; min-width: 180px"
                         />
+                        <button class="btn btn-small" onclick="renderRecipes()">
+                            🔍 Suchen
+                        </button>
                         <select
                             id="recipe-sort"
                             onchange="renderRecipes()"
@@ -1740,8 +1746,7 @@
                             <option value="">Mensa wählen...</option>
                             <option value="bruecke">Brücke SH</option>
                             <option value="fleet">Fleet</option>
-                            <option value="bread">🥖 Brötchen</option>
-                            <option value="soda">🥤 Softdrink</option>
+                            <option value="bread-soda"> Bread &amp; Soda</option>
                         </select>
                     </div>
                     <div style="display:flex; gap:8px; align-items:center;">
@@ -1828,8 +1833,7 @@
                             const typeLabels = {
                                 bruecke: "Mensa (Brücke)",
                                 fleet: "Mensa (Fleet)",
-                                bread: "🥖 Brötchen",
-                                soda: "🥤 Softdrink",
+                                "bread-soda": "🥖🥤 Bread & Soda",
                             };
                             const mensaLabel = day?.mensa
                                 ? typeLabels[day?.mensaType] || "Mensa"
@@ -1922,7 +1926,10 @@
                     <h3>Rezept auswählen</h3>
                     <button class="delete-btn" onclick="this.closest('.modal').remove()">×</button>
                 </div>
-                <input type="text" id="recipe-search-modal" placeholder="Rezepte suchen..." oninput="filterRecipesModal()" style="margin-bottom:15px;">
+                <div style="display:flex; gap:8px; margin-bottom:15px;">
+                    <input type="text" id="recipe-search-modal" placeholder="Rezepte suchen..." oninput="filterRecipesModal()" onkeydown="if(event.key==='Enter') filterRecipesModal()" style="flex:1;">
+                    <button class="btn btn-small" onclick="filterRecipesModal()">🔍</button>
+                </div>
                 <div id="recipe-list-modal">
                     ${currentRecipesItems
                         .map(

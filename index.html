@@ -1641,7 +1641,6 @@
 
                 // 1. Alle localStorage-Einträge der App löschen
                 const keys = [
-                    "shoppingChecked",
                     "cook-now-pantry",
                     "cook-now-theme",
                     "cook_now_last_news_date",
@@ -1830,16 +1829,13 @@
                     .join("");
             }
 
-            const shoppingChecked = JSON.parse(
-                localStorage.getItem("shoppingChecked") || "{}",
-            );
+            let shoppingChecked = {};
             let w1Data = null;
             let w2Data = null;
             let extData = null;
             let _ingredientOriginalNames = {};
 
             function loadRecipeState() {
-                // Lade Shopping-Status aus LocalStorage (shoppingChecked wird bereits beim Load initialisiert)
                 return shoppingChecked;
             }
 
@@ -2550,6 +2546,12 @@
                     extData = ext;
                     renderShoppingList();
                 });
+                onSnapshot(doc(db, "plaene", "shopping_checked"), (snap) => {
+                    shoppingChecked = snap.exists()
+                        ? snap.data().items || {}
+                        : {};
+                    renderShoppingList();
+                });
             }
 
             function renderShoppingList() {
@@ -2719,23 +2721,16 @@
             }
 
             function saveShoppingState() {
-                localStorage.setItem(
-                    "shoppingChecked",
-                    JSON.stringify(shoppingChecked),
-                );
+                setDoc(doc(db, "plaene", "shopping_checked"), {
+                    items: shoppingChecked,
+                });
             }
 
             window.toggleShoppingItem = (item) => {
-                console.log(
-                    "Toggling item:",
-                    item,
-                    "Current state:",
-                    shoppingChecked[item],
-                );
                 shoppingChecked[item] = !shoppingChecked[item];
-                console.log("New state:", shoppingChecked[item]);
-                saveShoppingState();
+                if (!shoppingChecked[item]) delete shoppingChecked[item];
                 renderShoppingList();
+                saveShoppingState();
             };
 
             window.addExtraItem = async () => {

@@ -831,10 +831,17 @@
             /* Recipe card long press feedback */
             .recipe-card {
                 -webkit-touch-callout: none;
+                -webkit-user-select: none;
+                -moz-user-select: none;
+                -ms-user-select: none;
                 user-select: none;
                 transition:
                     transform 0.12s,
                     box-shadow 0.12s;
+            }
+            .recipe-card * {
+                -webkit-user-select: none;
+                user-select: none;
             }
             .recipe-card.pressing {
                 transform: scale(0.97);
@@ -2063,6 +2070,11 @@
             function showRecipeContextMenu(recipeId, x, y) {
                 closeContextMenu();
                 triggerHaptic([10, 30, 10]);
+
+                // Markierung/Textauswahl entfernen die während Long-Press entstehen kann
+                if (window.getSelection) {
+                    window.getSelection().removeAllRanges();
+                }
 
                 const overlay = document.createElement("div");
                 overlay.id = "context-overlay";

@@ -1,0 +1,72 @@
+{
+  "name": "cook_now - Meal Planning App",
+  "short_name": "cook_now",
+  "description": "A beautiful iOS-inspired meal planning and shopping list app with glassmorphic design",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#007aff",
+  "orientation": "portrait-primary",
+  "scope": "./",
+  "icons": [
+    {
+      "src": "https://img.freepik.com/free-vector/flat-design-illustration-kitchen-cooking-elements_52683-114726.jpg?t=st=1775672507~exp=1775676107~hmac=552d4d67eaf904dcafec06227bdf228d0448f1ae29ca23a49823372d0478233a&w=192",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "any"
+    },
+    {
+      "src": "https://img.freepik.com/free-vector/flat-design-illustration-kitchen-cooking-elements_52683-114726.jpg?t=st=1775672507~exp=1775676107~hmac=552d4d67eaf904dcafec06227bdf228d0448f1ae29ca23a49823372d0478233a&w=512",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any"
+    },
+    {
+      "src": "https://img.freepik.com/free-vector/flat-design-illustration-kitchen-cooking-elements_52683-114726.jpg?t=st=1775672507~exp=1775676107~hmac=552d4d67eaf904dcafec06227bdf228d0448f1ae29ca23a49823372d0478233a&w=1480",
+      "sizes": "1480x1480",
+      "type": "image/jpeg",
+      "purpose": "any"
+    }
+  ],
+  "categories": ["productivity", "lifestyle"],
+  "screenshots": [
+    {
+      "src": "https://img.freepik.com/free-vector/flat-design-illustration-kitchen-cooking-elements_52683-114726.jpg?t=st=1775672507~exp=1775676107~hmac=552d4d67eaf904dcafec06227bdf228d0448f1ae29ca23a49823372d0478233a&w=540",
+      "sizes": "540x720",
+      "type": "image/jpeg",
+      "purpose": "any"
+    },
+    {
+      "src": "https://img.freepik.com/free-vector/flat-design-illustration-kitchen-cooking-elements_52683-114726.jpg?t=st=1775672507~exp=1775676107~hmac=552d4d67eaf904dcafec06227bdf228d0448f1ae29ca23a49823372d0478233a&w=1080",
+      "sizes": "1080x1920",
+      "type": "image/jpeg",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Einkaufsliste",
+      "short_name": "Einkauf",
+      "description": "Schneller Zugriff auf die Einkaufsliste",
+      "url": "?tab=shop",
+      "icons": [
+        {
+          "src": "https://img.freepik.com/free-vector/flat-design-illustration-kitchen-cooking-elements_52683-114726.jpg?t=st=1775672507~exp=1775676107~hmac=552d4d67eaf904dcafec06227bdf228d0448f1ae29ca23a49823372d0478233a&w=96",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Mahlzeiten Planer",
+      "short_name": "Planen",
+      "description": "Schneller Zugriff auf den Mahlzeitenplaner",
+      "url": "?tab=plan",
+      "icons": [
+        {
+          "src": "https://img.freepik.com/free-vector/flat-design-illustration-kitchen-cooking-elements_52683-114726.jpg?t=st=1775672507~exp=1775676107~hmac=552d4d67eaf904dcafec06227bdf228d0448f1ae29ca23a49823372d0478233a&w=96",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ]
+}

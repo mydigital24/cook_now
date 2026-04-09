@@ -2340,49 +2340,48 @@
             function handleSwipe() {
                 const deltaX = touchEndX - touchStartX;
                 const deltaY = touchEndY - touchStartY;
-                const minSwipeDistance = 50;
+                const minSwipeDistance = 60;
 
+                // Nur horizontale Wischgesten registrieren:
+                // deltaX muss deutlich größer als deltaY sein (Faktor 1.8),
+                // damit vertikales Scrollen nie als Tab-Wechsel zählt.
                 if (
-                    Math.abs(deltaX) > Math.abs(deltaY) &&
+                    Math.abs(deltaX) > Math.abs(deltaY) * 1.8 &&
                     Math.abs(deltaX) > minSwipeDistance
                 ) {
                     if (deltaX > 0) {
-                        // Swipe right - go to previous tab
                         swipeToPreviousTab();
                     } else {
-                        // Swipe left - go to next tab
                         swipeToNextTab();
                     }
-                } else if (
-                    Math.abs(deltaY) > minSwipeDistance &&
-                    Math.abs(deltaY) > Math.abs(deltaX)
-                ) {
-                    if (deltaY < 0 && Math.abs(deltaY) > 100) {
-                        // Swipe up - show news if at last tab
-                        const activeTab = document.querySelector(
-                            ".nav-item.active, .desktop-nav-item.active",
-                        );
-                        if (
-                            activeTab &&
-                            activeTab.innerText.includes("Mensa")
-                        ) {
-                            showNews();
-                        }
-                    }
                 }
+                // Vertikale Wischgesten: nichts tun → normales Scrollen bleibt erhalten
             }
 
-            function swipeToNextTab() {
-                const tabs = ["plan", "shop", "recipes", "mensa"];
+            function getSwipeTabs() {
                 const activeTab = document.querySelector(
                     ".nav-item.active, .desktop-nav-item.active",
                 );
-                if (!activeTab) return;
+                if (!activeTab) return { tabs: [], activeTab: null };
+                // Desktop-Sidebar hat einen News-Tab, mobile Nav nicht
+                const isDesktop =
+                    activeTab.classList.contains("desktop-nav-item");
+                const tabs = isDesktop
+                    ? ["plan", "shop", "recipes", "mensa", "news"]
+                    : ["plan", "shop", "recipes", "mensa"];
+                return { tabs, activeTab };
+            }
+
+            function swipeToNextTab() {
+                const { tabs, activeTab } = getSwipeTabs();
+                if (!activeTab || !tabs.length) return;
                 const currentIndex = tabs.findIndex((tab) =>
                     activeTab.onclick.toString().includes(tab),
                 );
-                const nextIndex = (currentIndex + 1) % tabs.length;
-                const nextTab = tabs[nextIndex];
+                // Am letzten Tab stoppen – kein Wraparound
+                if (currentIndex === -1 || currentIndex >= tabs.length - 1)
+                    return;
+                const nextTab = tabs[currentIndex + 1];
                 const nextBtn = document.querySelector(
                     `[onclick*="showTab('${nextTab}'"]`,
                 );
@@ -2390,17 +2389,14 @@
             }
 
             function swipeToPreviousTab() {
-                const tabs = ["plan", "shop", "recipes", "mensa"];
-                const activeTab = document.querySelector(
-                    ".nav-item.active, .desktop-nav-item.active",
-                );
-                if (!activeTab) return;
+                const { tabs, activeTab } = getSwipeTabs();
+                if (!activeTab || !tabs.length) return;
                 const currentIndex = tabs.findIndex((tab) =>
                     activeTab.onclick.toString().includes(tab),
                 );
-                const prevIndex =
-                    (currentIndex - 1 + tabs.length) % tabs.length;
-                const prevTab = tabs[prevIndex];
+                // Am ersten Tab stoppen – kein Wraparound
+                if (currentIndex <= 0) return;
+                const prevTab = tabs[currentIndex - 1];
                 const prevBtn = document.querySelector(
                     `[onclick*="showTab('${prevTab}'"]`,
                 );

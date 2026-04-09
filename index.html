@@ -1407,6 +1407,17 @@
                 <span>🍽️</span>Mensa
             </button>
             <button
+                class="nav-item"
+                onclick="showTab('news', this)"
+                style="position: relative"
+            >
+                <span>📰</span>News<span
+                    id="news-badge-nav"
+                    class="news-badge hidden"
+                    style="position: absolute; top: 6px; right: 6px"
+                ></span>
+            </button>
+            <button
                 class="settings-btn"
                 onclick="toggleSettings()"
                 title="Einstellungen"
@@ -1690,6 +1701,20 @@
                     .getElementById("view-" + id)
                     .classList.remove("hidden");
                 btn.classList.add("active");
+                // News-Tab geöffnet → beide Badges löschen und Datum speichern
+                if (id === "news") {
+                    if (allNews.length > 0) {
+                        localStorage.setItem(
+                            "cook_now_last_news_date",
+                            allNews[0].date,
+                        );
+                    }
+                    ["news-badge", "news-badge-nav"].forEach((badgeId) => {
+                        const b = document.getElementById(badgeId);
+                        if (b) b.classList.add("hidden");
+                    });
+                    loadNews();
+                }
             };
 
             // --- MEAL PLANER ---
@@ -1715,6 +1740,8 @@
                             <option value="">Mensa wählen...</option>
                             <option value="bruecke">Brücke SH</option>
                             <option value="fleet">Fleet</option>
+                            <option value="bread">🥖 Brötchen</option>
+                            <option value="soda">🥤 Softdrink</option>
                         </select>
                     </div>
                     <div style="display:flex; gap:8px; align-items:center;">
@@ -1798,8 +1825,17 @@
                             const date = new Date(weekStart);
                             date.setDate(weekStart.getDate() + i);
                             const dayLabel = `${t} ${formatDate(date)}`;
+                            const typeLabels = {
+                                bruecke: "Mensa (Brücke)",
+                                fleet: "Mensa (Fleet)",
+                                bread: "🥖 Brötchen",
+                                soda: "🥤 Softdrink",
+                            };
+                            const mensaLabel = day?.mensa
+                                ? typeLabels[day?.mensaType] || "Mensa"
+                                : "Eigenes Essen";
                             content.push(
-                                `<div>${dayLabel}: ${day?.mensa ? "Mensa" : "Eigenes Essen"}</div>`,
+                                `<div>${dayLabel}: ${mensaLabel}</div>`,
                             );
                         });
                     } else {
@@ -2126,7 +2162,7 @@
                         touch.clientX,
                         touch.clientY,
                     );
-                }, 500);
+                }, 400);
                 el.classList.add("pressing");
             };
 
@@ -2155,8 +2191,10 @@
                         "cook_now_last_news_date",
                         allNews[0].date,
                     );
-                    const badge = document.getElementById("news-badge");
-                    if (badge) badge.classList.add("hidden");
+                    ["news-badge", "news-badge-nav"].forEach((badgeId) => {
+                        const b = document.getElementById(badgeId);
+                        if (b) b.classList.add("hidden");
+                    });
                 }
             };
 
@@ -2269,16 +2307,17 @@
                     );
                     const latestNewsDate =
                         allNews.length > 0 ? allNews[0].date : null;
-                    const badge = document.getElementById("news-badge");
-                    if (
-                        badge &&
-                        latestNewsDate &&
-                        latestNewsDate !== lastSeenNewsDate
-                    ) {
-                        badge.classList.remove("hidden");
-                    } else if (badge) {
-                        badge.classList.add("hidden");
-                    }
+                    const showBadge =
+                        latestNewsDate && latestNewsDate !== lastSeenNewsDate;
+                    ["news-badge", "news-badge-nav"].forEach((badgeId) => {
+                        const b = document.getElementById(badgeId);
+                        if (!b) return;
+                        if (showBadge) {
+                            b.classList.remove("hidden");
+                        } else {
+                            b.classList.add("hidden");
+                        }
+                    });
 
                     renderNewsList();
 

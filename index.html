@@ -1682,6 +1682,7 @@
             let currentRecipesUser = null;
             let currentRecipesItems = [];
             let currentEditRecipeId = null;
+            let _modalDayIndex = 0;
 
             // TAB NAVIGATION
             window.showTab = (id, btn, isDesktop) => {
@@ -1917,7 +1918,7 @@
             };
 
             window.selectRecipeForDay = (dayIndex) => {
-                // Öffne ein Modal mit Rezept-Liste
+                _modalDayIndex = dayIndex;
                 const modal = document.createElement("div");
                 modal.className = "modal";
                 modal.innerHTML = `
@@ -1927,39 +1928,57 @@
                     <button class="delete-btn" onclick="this.closest('.modal').remove()">×</button>
                 </div>
                 <div style="display:flex; gap:8px; margin-bottom:15px;">
-                    <input type="text" id="recipe-search-modal" placeholder="Rezepte suchen..." oninput="filterRecipesModal()" onkeydown="if(event.key==='Enter') filterRecipesModal()" style="flex:1;">
+                    <input type="text" id="recipe-search-modal" placeholder="Rezepte suchen..."
+                        oninput="filterRecipesModal()"
+                        onkeydown="if(event.key==='Enter') filterRecipesModal()"
+                        style="flex:1;">
                     <button class="btn btn-small" onclick="filterRecipesModal()">🔍</button>
                 </div>
-                <div id="recipe-list-modal">
-                    ${currentRecipesItems
-                        .map(
-                            (recipe) => `
-                        <div class="card" style="margin-bottom:10px; cursor:pointer;" onclick="selectRecipe('${recipe.id}', ${dayIndex}); this.closest('.modal').remove()">
-                            <h4 style="margin:0 0 8px 0;">${recipe.title || "Ohne Titel"}</h4>
-                            <div style="font-size:14px; color: var(--gray);">${(recipe.ingredients || "").split("\n")[0] || "Keine Zutaten"}</div>
-                        </div>
-                    `,
-                        )
-                        .join("")}
-                </div>
+                <div id="recipe-list-modal"></div>
             </div>
         `;
                 document.body.appendChild(modal);
+                // Render initial list immediately after modal is in DOM
+                filterRecipesModal();
             };
 
             window.filterRecipesModal = () => {
-                const query = document
-                    .getElementById("recipe-search-modal")
-                    .value.toLowerCase();
-                const items = document.querySelectorAll(
-                    "#recipe-list-modal .card",
-                );
-                items.forEach((item) => {
-                    const text = item.innerText.toLowerCase();
-                    item.style.display = text.includes(query)
-                        ? "block"
-                        : "none";
+                const container = document.getElementById("recipe-list-modal");
+                if (!container) return;
+
+                const query = (
+                    document.getElementById("recipe-search-modal")?.value || ""
+                )
+                    .toLowerCase()
+                    .trim();
+
+                const filtered = currentRecipesItems.filter((recipe) => {
+                    if (!query) return true;
+                    return [
+                        recipe.title,
+                        recipe.description,
+                        recipe.ingredients,
+                    ]
+                        .join(" ")
+                        .toLowerCase()
+                        .includes(query);
                 });
+
+                if (!filtered.length) {
+                    container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--gray);">Kein Rezept gefunden.</div>`;
+                    return;
+                }
+
+                container.innerHTML = filtered
+                    .map(
+                        (recipe) => `
+                    <div class="card" style="margin-bottom:10px;cursor:pointer;"
+                         onclick="selectRecipe('${recipe.id}', ${_modalDayIndex}); this.closest('.modal').remove()">
+                        <h4 style="margin:0 0 6px 0;">${recipe.title || "Ohne Titel"}</h4>
+                        <div style="font-size:13px;color:var(--gray);">${(recipe.ingredients || "").split("\n")[0] || "Keine Zutaten"}</div>
+                    </div>`,
+                    )
+                    .join("");
             };
 
             window.selectRecipe = (recipeId, dayIndex) => {
@@ -2932,19 +2951,32 @@
                 });
             }
 
-            function renderRecipes(items) {
-                if (!items) items = currentRecipesItems;
+            window.renderRecipes = function (items) {
                 const container = document.getElementById("recipes-list");
-                const query = document
-                    .getElementById("search-recipes")
-                    .value.toLowerCase();
-                const sortType =
-                    document.getElementById("recipe-sort").value || "newest";
+                if (!container) return;
 
-                const filtered = items
+                // Always search across all known recipes unless a subset is given
+                const pool = Array.isArray(items) ? items : currentRecipesItems;
+
+                const query = (
+                    document.getElementById("search-recipes")?.value || ""
+                )
+                    .toLowerCase()
+                    .trim();
+                const sortType =
+                    document.getElementById("recipe-sort")?.value || "newest";
+
+                const filtered = pool
                     .filter((recipe) => {
-                        const text =
-                            `${recipe.title} ${recipe.description} ${recipe.ingredients} ${recipe.preparation}`.toLowerCase();
+                        if (!query) return true;
+                        const text = [
+                            recipe.title,
+                            recipe.description,
+                            recipe.ingredients,
+                            recipe.preparation,
+                        ]
+                            .join(" ")
+                            .toLowerCase();
                         return text.includes(query);
                     })
                     .sort((a, b) => {
@@ -2955,8 +2987,13 @@
                         return (b.createdAt || 0) - (a.createdAt || 0);
                     });
 
+                if (pool.length === 0) {
+                    container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--gray);">Noch keine Rezepte vorhanden.<br>Erstelle dein erstes Rezept!</div>`;
+                    return;
+                }
+
                 if (!filtered.length) {
-                    container.innerHTML = "<div>Keine Rezepte gefunden.</div>";
+                    container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--gray);">Kein Rezept passt zu „${query}".</div>`;
                     return;
                 }
 
@@ -2974,7 +3011,7 @@
                     <div style="flex:1; min-width:0;">
                         <h4 style="margin:0 0 8px 0;">${recipe.title || "Ohne Titel"}</h4>
                         <div style="font-size:14px; color: var(--gray); margin-bottom:8px;">${recipe.description || "Keine Beschreibung"}</div>
-                        <div style="font-size:14px; color: var(--gray);">${(recipe.ingredients || "").split("\\n")[0] || "Keine Zutaten"}...</div>
+                        <div style="font-size:14px; color: var(--gray);">${(recipe.ingredients || "").split("\n")[0] || "Keine Zutaten"}...</div>
                     </div>
                     <div style="display:flex; flex-direction:column; gap:6px;" onclick="event.stopPropagation();">
                         <button class="btn btn-small" onclick="event.stopPropagation(); shareRecipe('${recipe.id}')">↑ Teilen</button>
@@ -2987,7 +3024,7 @@
         `,
                     )
                     .join("");
-            }
+            };
 
             window.showCreateRecipe = () => {
                 document

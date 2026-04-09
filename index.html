@@ -1728,6 +1728,7 @@
             let w1Data = null;
             let w2Data = null;
             let extData = null;
+            let _ingredientOriginalNames = {};
 
             function loadRecipeState() {
                 // Lade Shopping-Status aus LocalStorage (shoppingChecked wird bereits beim Load initialisiert)
@@ -2454,6 +2455,12 @@
                 // Aggregiere Zutaten
                 const aggregated = aggregateIngredients(allIngredients);
 
+                // Mappe Display-Text → Original-Texte (für korrektes Löschen)
+                _ingredientOriginalNames = {};
+                aggregated.forEach((item) => {
+                    _ingredientOriginalNames[item.text] = item.originalNames;
+                });
+
                 // Gruppiere nach Kategorien
                 const byCategory = {};
                 aggregated.forEach((item) => {
@@ -2622,10 +2629,13 @@
                         Object.keys(data).forEach((dayIndex) => {
                             const day = data[dayIndex];
                             if (day.ing) {
+                                const originals = _ingredientOriginalNames[
+                                    item
+                                ] || [item];
                                 const ings = day.ing
                                     .split(",")
                                     .map((s) => s.trim())
-                                    .filter((s) => s !== item);
+                                    .filter((s) => !originals.includes(s));
                                 updated[dayIndex] = {
                                     ...day,
                                     ing: ings.join(", "),
@@ -3050,6 +3060,14 @@
             };
 
             let currentRecipeDetails = null;
+
+            function closeRecipeDetails() {
+                document
+                    .getElementById("recipe-details-modal")
+                    .classList.add("hidden");
+                currentRecipeDetails = null;
+            }
+            window.closeRecipeDetails = closeRecipeDetails;
 
             window.showRecipeDetails = (id) => {
                 const recipe = currentRecipesItems.find((r) => r.id === id);

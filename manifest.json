@@ -1,72 +1,47 @@
 {
-  "name": "cook_now - Meal Planning App",
+  "name": "cook_now - Meal Planning",
   "short_name": "cook_now",
-  "description": "A beautiful iOS-inspired meal planning and shopping list app with glassmorphic design",
+  "description": "Date-based meal planner with calendar and offline support",
   "start_url": ".",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#007aff",
+  "background_color": "#000000",
+  "theme_color": "#9933CC",
   "orientation": "portrait-primary",
   "scope": "./",
-  "icons": [
-    {
-      "src": "https://img.freepik.com/free-vector/flat-design-illustration-kitchen-cooking-elements_52683-114726.jpg?t=st=1775672507~exp=1775676107~hmac=552d4d67eaf904dcafec06227bdf228d0448f1ae29ca23a49823372d0478233a&w=192",
-      "sizes": "192x192",
-      "type": "image/jpeg",
-      "purpose": "any"
-    },
-    {
-      "src": "https://img.freepik.com/free-vector/flat-design-illustration-kitchen-cooking-elements_52683-114726.jpg?t=st=1775672507~exp=1775676107~hmac=552d4d67eaf904dcafec06227bdf228d0448f1ae29ca23a49823372d0478233a&w=512",
-      "sizes": "512x512",
-      "type": "image/jpeg",
-      "purpose": "any"
-    },
-    {
-      "src": "https://img.freepik.com/free-vector/flat-design-illustration-kitchen-cooking-elements_52683-114726.jpg?t=st=1775672507~exp=1775676107~hmac=552d4d67eaf904dcafec06227bdf228d0448f1ae29ca23a49823372d0478233a&w=1480",
-      "sizes": "1480x1480",
-      "type": "image/jpeg",
-      "purpose": "any"
-    }
-  ],
   "categories": ["productivity", "lifestyle"],
-  "screenshots": [
-    {
-      "src": "https://img.freepik.com/free-vector/flat-design-illustration-kitchen-cooking-elements_52683-114726.jpg?t=st=1775672507~exp=1775676107~hmac=552d4d67eaf904dcafec06227bdf228d0448f1ae29ca23a49823372d0478233a&w=540",
-      "sizes": "540x720",
-      "type": "image/jpeg",
-      "purpose": "any"
-    },
-    {
-      "src": "https://img.freepik.com/free-vector/flat-design-illustration-kitchen-cooking-elements_52683-114726.jpg?t=st=1775672507~exp=1775676107~hmac=552d4d67eaf904dcafec06227bdf228d0448f1ae29ca23a49823372d0478233a&w=1080",
-      "sizes": "1080x1920",
-      "type": "image/jpeg",
-      "purpose": "any"
-    }
-  ],
   "shortcuts": [
     {
-      "name": "Einkaufsliste",
-      "short_name": "Einkauf",
-      "description": "Schneller Zugriff auf die Einkaufsliste",
-      "url": "?tab=shop",
+      "name": "Mahlzeit Planen",
+      "short_name": "Planen",
+      "description": "Neue Mahlzeit planen",
+      "url": ".",
       "icons": [
         {
-          "src": "https://img.freepik.com/free-vector/flat-design-illustration-kitchen-cooking-elements_52683-114726.jpg?t=st=1775672507~exp=1775676107~hmac=552d4d67eaf904dcafec06227bdf228d0448f1ae29ca23a49823372d0478233a&w=96",
-          "sizes": "96x96"
+          "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' rx='20' fill='%239933CC'/%3E%3Ctext x='48' y='62' font-size='48' text-anchor='middle' fill='white'%3E🍽%3C/text%3E%3C/svg%3E",
+          "sizes": "96x96",
+          "type": "image/svg+xml"
         }
       ]
+    }
+  ],
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='36' fill='%239933CC'/%3E%3Ctext x='96' y='126' font-size='96' text-anchor='middle' fill='white'%3E🍽%3C/text%3E%3C/svg%3E",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
     },
     {
-      "name": "Mahlzeiten Planer",
-      "short_name": "Planen",
-      "description": "Schneller Zugriff auf den Mahlzeitenplaner",
-      "url": "?tab=plan",
-      "icons": [
-        {
-          "src": "https://img.freepik.com/free-vector/flat-design-illustration-kitchen-cooking-elements_52683-114726.jpg?t=st=1775672507~exp=1775676107~hmac=552d4d67eaf904dcafec06227bdf228d0448f1ae29ca23a49823372d0478233a&w=96",
-          "sizes": "96x96"
-        }
-      ]
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='96' fill='%239933CC'/%3E%3Ctext x='256' y='340' font-size='256' text-anchor='middle' fill='white'%3E🍽%3C/text%3E%3C/svg%3E",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1024 1024'%3E%3Crect width='1024' height='1024' rx='192' fill='%239933CC'/%3E%3Ctext x='512' y='680' font-size='512' text-anchor='middle' fill='white'%3E🍽%3C/text%3E%3C/svg%3E",
+      "sizes": "1024x1024",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
     }
   ]
 }

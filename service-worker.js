@@ -1,5 +1,5 @@
-const CACHE_NAME = "cook-now-v5";
-const RUNTIME_CACHE = "cook-now-runtime-v5";
+const CACHE_NAME = "cook-now-v6";
+const RUNTIME_CACHE = "cook-now-runtime-v6";
 
 self.addEventListener("install", (event) => {
   event.waitUntil(

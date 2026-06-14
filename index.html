@@ -29,9 +29,10 @@
                 --danger: #ff3b30;
                 --glass-blur: 20px;
                 --glass-tint: rgba(255, 255, 255, 0.1);
-                --nav-bg: rgba(255, 255, 255, 0.15);
-                --nav-border: rgba(255, 255, 255, 0.3);
-                --nav-shadow: rgba(0, 0, 0, 0.1);
+                --nav-bg: rgba(255, 255, 255, 0.35);
+                --nav-border: rgba(255, 255, 255, 0.55);
+                --nav-shadow: 0 8px 32px rgba(0,0,0,0.06);
+                --nav-active: rgba(255,255,255,0.7);
             }
 
             @media (prefers-color-scheme: dark) {
@@ -41,9 +42,10 @@
                     --text: #f5f5f7;
                     --gray: #8e8e93;
                     --glass-tint: rgba(0, 0, 0, 0.2);
-                    --nav-bg: rgba(30, 30, 30, 0.35);
-                    --nav-border: rgba(255, 255, 255, 0.08);
-                    --nav-shadow: rgba(0, 0, 0, 0.3);
+                    --nav-bg: rgba(28, 28, 30, 0.72);
+                    --nav-border: rgba(255, 255, 255, 0.10);
+                    --nav-shadow: 0 8px 32px rgba(0,0,0,0.4);
+                    --nav-active: rgba(255,255,255,0.08);
                 }
             }
 
@@ -52,9 +54,10 @@
                 --card: rgba(30, 30, 30, 0.95);
                 --text: #f5f5f7;
                 --glass-tint: rgba(0, 0, 0, 0.2);
-                --nav-bg: rgba(30, 30, 30, 0.35);
-                --nav-border: rgba(255, 255, 255, 0.08);
-                --nav-shadow: rgba(0, 0, 0, 0.3);
+                --nav-bg: rgba(28, 28, 30, 0.72);
+                --nav-border: rgba(255, 255, 255, 0.10);
+                --nav-shadow: 0 8px 32px rgba(0,0,0,0.4);
+                --nav-active: rgba(255,255,255,0.08);
             }
 
             html.light-mode {
@@ -63,8 +66,9 @@
                 --text: #1c1c1e;
                 --glass-tint: rgba(255, 255, 255, 0.1);
                 --nav-bg: rgba(255, 255, 255, 0.35);
-                --nav-border: rgba(255, 255, 255, 0.3);
-                --nav-shadow: rgba(0, 0, 0, 0.1);
+                --nav-border: rgba(255, 255, 255, 0.55);
+                --nav-shadow: 0 8px 32px rgba(0,0,0,0.06);
+                --nav-active: rgba(255,255,255,0.7);
             }
 
             * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -85,7 +89,8 @@
             }
 
             .container {
-                padding: 15px;
+                padding: calc(8px + env(safe-area-inset-top,16px)) 16px;
+                padding-bottom: 80px;
                 max-width: 500px;
                 margin: auto;
             }
@@ -100,50 +105,66 @@
                 animation: fadeIn 0.4s ease-out;
             }
 
+            #view-edit,
+            #view-calendar {
+                display: none;
+            }
+            #view-edit.hidden,
+            #view-calendar.hidden {
+                display: none !important;
+            }
+            #view-edit:not(.hidden),
+            #view-calendar:not(.hidden) {
+                display: flex;
+            }
+
+            #view-edit {
+                flex-direction: column;
+                height: calc(100dvh - 30px);
+                overflow: hidden;
+            }
+
+            @media (min-width: 1024px) {
+                #view-edit { height: calc(100dvh - 48px); }
+            }
+
             @keyframes fadeIn {
                 from { opacity: 0; transform: translateY(10px); }
                 to { opacity: 1; transform: translateY(0); }
             }
 
-            /* === LIQUID GLASS NAV === */
+            /* === DOCK === */
             .liquid-nav {
                 position: fixed;
-                bottom: 24px;
+                bottom: max(16px, env(safe-area-inset-bottom, 16px));
                 left: 50%;
                 transform: translateX(-50%);
                 display: flex;
                 align-items: center;
+                justify-content: space-evenly;
+                width: min(88%, 400px);
+                height: 68px;
                 background: var(--nav-bg);
-                backdrop-filter: blur(40px) saturate(150%);
-                -webkit-backdrop-filter: blur(40px) saturate(150%);
+                backdrop-filter: blur(24px) saturate(150%);
+                -webkit-backdrop-filter: blur(24px) saturate(150%);
                 border: 1px solid var(--nav-border);
-                border-radius: 26px;
+                border-radius: 34px;
+                box-shadow: var(--nav-shadow);
                 z-index: 1000;
-                padding: 4px 6px;
-                box-shadow: none;
-                max-width: 340px;
-                width: calc(100% - 48px);
+                padding: 0 6px;
                 animation: navSlideUp 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
             }
 
     .nav-pill {
-        position: absolute;
-        top: 2px;
-        bottom: 2px;
-        width: 0;
-        background: rgba(255,255,255,0.08);
-        border-radius: 22px;
-        pointer-events: none;
-        z-index: 0;
-        transition: transform 0.3s ease, width 0.3s ease;
+        display: none;
     }
 
     .nav-tabs {
         display: flex;
         flex: 1;
         align-items: center;
-        position: relative;
         gap: 0;
+        height: 100%;
     }
 
             @keyframes navSlideUp {
@@ -157,6 +178,7 @@
 
     .nav-item {
         flex: 1;
+        height: 80%;
         border: none;
         background: transparent;
         font-size: 10px;
@@ -166,27 +188,26 @@
         justify-content: center;
         color: var(--gray);
         cursor: pointer;
-        padding: 6px 2px;
-        border-radius: 18px;
-        transition: color 0.25s ease;
+        padding: 4px 6px;
+        border-radius: 999px;
+        transition: background 0.2s, color 0.2s;
         position: relative;
         z-index: 1;
-        gap: 1px;
+        gap: 2px;
         font-weight: 500;
         min-width: 0;
     }
 
     .nav-item .nav-icon {
-        width: 20px;
-        height: 20px;
+        width: 24px;
+        height: 24px;
         display: block;
-        position: relative;
-        z-index: 2;
+        flex-shrink: 0;
     }
 
     .nav-item .nav-icon svg {
-        width: 20px;
-        height: 20px;
+        width: 24px;
+        height: 24px;
         display: block;
         fill: none;
         stroke: currentColor;
@@ -196,14 +217,15 @@
     }
 
     .nav-item .nav-label {
-        font-size: 8px;
+        font-size: 10px;
         font-weight: 500;
-        letter-spacing: 0.2px;
-        opacity: 0.6;
+        letter-spacing: 0.1px;
+        opacity: 0.8;
     }
 
     .nav-item.active {
         color: var(--primary);
+        background: var(--nav-active);
     }
 
     .nav-item.active .nav-label {
@@ -401,24 +423,7 @@
                 box-shadow: 0 0 0 3px var(--primary-dim);
             }
 
-            .mensa-row {
-                display: flex;
-                align-items: center;
-                gap: 10px;
-                margin: 8px 0;
-                padding: 8px 0;
-            }
-
-            .mensa-row input[type="checkbox"] {
-                width: 20px;
-                height: 20px;
-                accent-color: var(--primary);
-                margin: 0;
-            }
-
-            .mensa-row select {
-                flex: 1;
-                padding: 8px 12px;
+            /* === CALENDAR === */
                 border: 1px solid var(--glass-tint);
                 border-radius: 10px;
                 font-size: 13px;
@@ -450,6 +455,19 @@
                 font-size: 13px;
                 width: auto;
                 border-radius: 10px;
+            }
+
+            .today-btn {
+                background: var(--primary);
+                color: white;
+                border: none;
+                border-radius: 10px;
+                padding: 6px 16px;
+                font-size: 13px;
+                font-weight: 600;
+                cursor: pointer;
+                display: inline-block;
+                width: auto;
             }
 
             .status-message {
@@ -549,9 +567,9 @@
             /* === CALENDAR === */
             .calendar-header {
                 display: flex;
+                flex-direction: column;
                 align-items: center;
-                justify-content: space-between;
-                margin-bottom: 20px;
+                margin-bottom: 12px;
                 padding: 4px 0;
             }
 
@@ -586,6 +604,33 @@
                 display: grid;
                 grid-template-columns: repeat(7, 1fr);
                 gap: 4px;
+            }
+
+            .calendar-grid.week-grid {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 4px;
+            }
+            .calendar-grid.week-grid > * {
+                flex: 1 0 calc(100% / 7 - 4px);
+                max-width: calc(100% / 7 - 4px);
+                min-width: 0;
+                box-sizing: border-box;
+            }
+            @media (max-width: 400px) {
+                .calendar-grid.week-grid > * {
+                    flex: 1 0 calc(50% - 4px);
+                    max-width: calc(50% - 4px);
+                }
+                .calendar-grid.week-grid .calendar-week-day {
+                    min-height: 56px;
+                }
+            }
+            @media (max-width: 320px) {
+                .calendar-grid.week-grid > * {
+                    flex: 1 0 100%;
+                    max-width: 100%;
+                }
             }
 
             .calendar-weekday {
@@ -675,16 +720,17 @@
                 display: flex;
                 flex-direction: column;
                 align-items: center;
-                gap: 4px;
-                padding: 12px 8px;
-                border-radius: 16px;
+                justify-content: center;
+                gap: 3px;
+                padding: 8px 4px;
+                border-radius: 14px;
                 cursor: pointer;
                 transition: all 0.2s;
                 border: none;
                 background: var(--card-bg);
                 color: var(--text);
                 width: 100%;
-                min-height: 100px;
+                min-height: 76px;
             }
 
             .calendar-week-day:active {
@@ -704,102 +750,54 @@
             }
 
             .calendar-week-day .week-day-name {
-                font-size: 12px;
+                font-size: 10px;
                 font-weight: 600;
                 text-transform: uppercase;
                 opacity: 0.7;
+                letter-spacing: 0.3px;
             }
 
             .calendar-week-day .week-day-num {
-                font-size: 20px;
+                font-size: 18px;
                 font-weight: 700;
+                line-height: 1;
             }
 
             .calendar-week-day .week-day-meal {
-                font-size: 11px;
+                font-size: 9px;
                 text-align: center;
                 opacity: 0.9;
                 background: rgba(255,255,255,0.1);
-                padding: 2px 8px;
-                border-radius: 6px;
+                padding: 2px 4px;
+                border-radius: 5px;
                 max-width: 100%;
                 overflow: hidden;
                 text-overflow: ellipsis;
                 white-space: nowrap;
+                font-weight: 500;
+                line-height: 1.2;
+            }
+
+            .calendar-week-day .week-day-meal.dish {
+                background: rgba(52,199,89,0.2);
+                color: #34c759;
+            }
+
+            .calendar-week-day .week-day-meal.mensa {
+                background: rgba(255,149,0,0.2);
+                color: #ff9f0a;
             }
 
             .calendar-week-day.today .week-day-meal {
                 background: rgba(255,255,255,0.2);
             }
 
-            /* === MODAL === */
-            .modal-overlay {
-                position: fixed;
-                inset: 0;
-                background: rgba(0,0,0,0.5);
-                backdrop-filter: blur(8px);
-                -webkit-backdrop-filter: blur(8px);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                z-index: 2000;
-                opacity: 0;
-                pointer-events: none;
-                transition: opacity 0.3s ease;
-                padding: 24px;
+            .calendar-week-day.today .week-day-meal.dish,
+            .calendar-week-day.today .week-day-meal.mensa {
+                color: white;
             }
 
-            .modal-overlay.open {
-                opacity: 1;
-                pointer-events: auto;
-            }
-
-            .modal-content {
-                background: var(--card);
-                backdrop-filter: blur(40px) saturate(200%);
-                -webkit-backdrop-filter: blur(40px) saturate(200%);
-                border: 1px solid var(--glass-tint);
-                border-radius: 24px;
-                width: 100%;
-                max-width: 400px;
-                box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-                animation: modalSlideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-                overflow: hidden;
-            }
-
-            @keyframes modalSlideUp {
-                from { transform: translateY(40px) scale(0.95); opacity: 0; }
-                to { transform: translateY(0) scale(1); opacity: 1; }
-            }
-
-            .modal-header {
-                display: flex;
-                align-items: center;
-                gap: 10px;
-                padding: 18px 20px 0;
-            }
-
-            .modal-close {
-                margin-left: auto;
-                background: none;
-                border: none;
-                color: var(--gray);
-                font-size: 20px;
-                cursor: pointer;
-                padding: 4px 8px;
-                border-radius: 8px;
-                transition: 0.2s;
-            }
-
-            .modal-close:hover {
-                background: rgba(255,255,255,0.1);
-            }
-
-            .modal-body {
-                padding: 16px 20px 20px;
-            }
-
-            /* === SETTINGS === */
+            /* === MEDIA QUERIES === */
             .settings-section { margin-bottom: 24px; }
 
             .settings-section h3 {
@@ -861,7 +859,208 @@
                 line-height: 1.6;
             }
 
-            /* === MEDIA QUERIES === */
+            /* === EDIT VIEW === */
+            .edit-scroll {
+                flex: 1;
+                overflow-y: auto;
+                padding: 0 16px calc(96px + env(safe-area-inset-bottom,0px));
+                -webkit-overflow-scrolling: touch;
+            }
+            .edit-scroll::-webkit-scrollbar { display: none; }
+
+            .edit-header {
+                padding: calc(16px + env(safe-area-inset-top,20px)) 16px 20px;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+            }
+            .edit-header h1 {
+                font-size: 28px;
+                font-weight: 700;
+                letter-spacing: -0.5px;
+                margin: 0;
+                flex: 1;
+            }
+            .edit-back-btn {
+                background: none;
+                border: none;
+                font-size: 24px;
+                color: var(--primary);
+                cursor: pointer;
+                padding: 4px 4px 4px 0;
+                display: flex;
+                align-items: center;
+            }
+
+            .edit-card {
+                background: var(--card);
+                border-radius: 16px;
+                overflow: hidden;
+                margin-bottom: 12px;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            }
+
+            .accent-btn {
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                border: 3px solid transparent;
+                cursor: pointer;
+                transition: all 0.2s;
+                padding: 0;
+            }
+            .accent-btn.active {
+                border-color: var(--text);
+                transform: scale(1.12);
+                box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--text);
+            }
+            .accent-btn:active {
+                transform: scale(0.9);
+            }
+
+            .edit-row {
+                display: flex;
+                align-items: center;
+                padding: 14px 16px;
+                min-height: 50px;
+            }
+            .edit-row:not(:last-child) {
+                border-bottom: 0.5px solid var(--separator-light);
+            }
+
+            .edit-label {
+                font-size: 15px;
+                font-weight: 500;
+                color: var(--text);
+                min-width: 70px;
+            }
+
+            .edit-field {
+                flex: 1;
+                font-size: 15px;
+                color: var(--text-secondary);
+                background: transparent;
+                border: none;
+                outline: none;
+                font-family: inherit;
+                text-align: right;
+                padding: 0;
+            }
+            .edit-field::placeholder { color: var(--text-tertiary); }
+            .edit-field:focus { color: var(--text); }
+
+            .edit-textarea {
+                width: 100%;
+                padding: 14px 16px;
+                font-size: 15px;
+                color: var(--text);
+                background: transparent;
+                border: none;
+                outline: none;
+                font-family: inherit;
+                resize: none;
+                min-height: 80px;
+                line-height: 1.5;
+            }
+            .edit-textarea::placeholder { color: var(--text-tertiary); }
+
+            .edit-mensa-select {
+                font-size: 15px;
+                color: var(--text-secondary);
+                background: transparent;
+                border: none;
+                outline: none;
+                font-family: inherit;
+                text-align: right;
+                flex: 1;
+                cursor: pointer;
+                -webkit-appearance: none;
+                padding: 0;
+            }
+            .edit-mensa-select option { color: var(--text); background: var(--card); }
+
+            .edit-actions {
+                display: flex;
+                gap: 10px;
+                margin-top: 16px;
+                padding-bottom: 16px;
+            }
+            .edit-save-btn {
+                flex: 1;
+                background: var(--primary);
+                color: white;
+                border: none;
+                padding: 14px;
+                border-radius: 14px;
+                font-size: 16px;
+                font-weight: 600;
+                cursor: pointer;
+                font-family: inherit;
+                transition: opacity 0.15s;
+            }
+            .edit-save-btn:active { opacity: 0.7; }
+
+            .edit-delete-btn {
+                width: 52px;
+                height: 52px;
+                background: rgba(255,59,48,0.12);
+                color: var(--danger);
+                border: none;
+                border-radius: 14px;
+                font-size: 20px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: opacity 0.15s;
+            }
+            .edit-delete-btn:active { opacity: 0.6; }
+
+            .edit-date-input {
+                font-size: 15px;
+                color: var(--primary);
+                background: transparent;
+                border: none;
+                outline: none;
+                font-family: inherit;
+                text-align: right;
+                flex: 1;
+                cursor: pointer;
+                -webkit-appearance: none;
+            }
+
+            .edit-section-label {
+                font-size: 13px;
+                font-weight: 600;
+                color: var(--text-secondary);
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                padding: 4px 4px 8px;
+            }
+            @media (max-width: 380px) {
+                .calendar-grid { gap: 2px; }
+                .calendar-week-day { min-height: 60px; padding: 4px 2px; border-radius: 10px; }
+                .calendar-week-day .week-day-name { font-size: 8px; }
+                .calendar-week-day .week-day-num { font-size: 14px; }
+                .calendar-week-day .week-day-meal { font-size: 7px; padding: 1px 2px; }
+                .calendar-day { font-size: 12px; border-radius: 8px; min-height: 32px; }
+                .card { padding: 10px; border-radius: 14px; }
+                #view-calendar .calendar-header { padding: calc(4px + env(safe-area-inset-top,16px)) 10px 4px !important; }
+                .cal-scroll { padding-left: 10px !important; padding-right: 10px !important; }
+                .calendar-header h1 { font-size: 20px !important; }
+                .btn-small { padding: 5px 10px; font-size: 11px; }
+                .today-btn { padding: 4px 12px; font-size: 11px; }
+                .calendar-nav-btn { width: 30px; height: 30px; font-size: 16px; }
+                .anstehend-item { padding: 8px 10px; gap: 8px; }
+                .anstehend-date { min-width: 36px; }
+                .anstehend-date .day-num { font-size: 16px; }
+                .anstehend-date .day-label { font-size: 9px; }
+                .anstehend-info .meal-name { font-size: 12px; }
+                .anstehend-info .meal-meta { font-size: 10px; }
+                #calendar-selected-meal { padding: 12px; border-radius: 16px; }
+                #calendar-selected-meal #selected-meal-date { font-size: 15px; }
+                #calendar-selected-meal #selected-meal-name { font-size: 13px; }
+            }
             @media (min-width: 1024px) {
                 h1 { font-size: 40px !important; margin-bottom: 32px !important; }
             }
@@ -893,7 +1092,7 @@
                 </span>
                 <span>Kalender</span>
             </button>
-            <button class="desktop-nav-item" onclick="openEditModal(this)" style="justify-content:center;">
+            <button class="desktop-nav-item" onclick="openEditView(this, true)" data-tab="edit" style="justify-content:center;">
                 <span class="nav-icon" style="font-size:24px;font-weight:200;line-height:1;">+</span>
                 <span>Neu</span>
             </button>
@@ -928,8 +1127,8 @@
                 </div>
 
                 <!-- Meal Plan (click to edit) -->
-                <div class="card" id="meal-card" onclick="openEditModal(this)" style="cursor:pointer;">
-                    <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+                <div class="card" id="meal-card" onclick="openEditView(this)" style="cursor:pointer;">
+                    <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;flex-wrap:wrap;">
                         <span style="font-size:18px;">🍽️</span>
                         <strong style="font-size:16px;">Mahlzeit</strong>
                         <span style="margin-left:auto;font-size:13px;color:var(--gray);">✏️ tippen zum Bearbeiten</span>
@@ -956,31 +1155,45 @@
                 </div>
             </div>
 
-            <!-- CALENDAR VIEW (Jahr) -->
-            <div id="view-calendar" class="view hidden">
-                <div class="calendar-header" style="margin-bottom:8px;">
-                    <h1 style="font-size:32px; letter-spacing:-1px; margin:0; color:var(--primary);">cook_now</h1>
-                </div>
-                <div class="card">
-                    <div class="calendar-header">
-                        <button class="calendar-nav-btn" onclick="navigateMonth(-1)">‹</button>
-                        <h2 id="calendar-month-label">Januar 2026</h2>
-                        <button class="calendar-nav-btn" onclick="navigateMonth(1)">›</button>
+            <!-- CALENDAR VIEW -->
+            <div id="view-calendar" class="view hidden" style="flex-direction:column;height:100dvh;overflow:hidden;">
+                <div class="calendar-header" style="padding:calc(8px + env(safe-area-inset-top,20px)) 16px 8px;flex-shrink:0;">
+                    <h1 style="font-size:28px;letter-spacing:-0.5px;margin:0 0 6px;color:var(--primary);align-self:flex-start;">cook_now</h1>
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap;width:100%;">
+                        <button class="btn-small" id="view-week-btn" onclick="setCalendarView('week')" style="background:var(--primary);color:white;">Woche</button>
+                        <button class="btn-small" id="view-month-btn" onclick="setCalendarView('month')">Monat</button>
+                        <button class="btn-small" id="view-list-btn" onclick="setCalendarView('list')">Liste</button>
                     </div>
-                    <div style="display:flex;gap:6px;margin-bottom:12px;justify-content:center;">
-                        <button class="btn-small" id="view-month-btn" onclick="setCalendarView('month')" style="background:var(--primary);color:white;">Monat</button>
-                        <button class="btn-small" id="view-week-btn" onclick="setCalendarView('week')">Woche</button>
-                    </div>
-                    <div class="calendar-grid" id="calendar-grid"></div>
-                    <div class="calendar-legend">
-                        <span><span class="dot"></span> Mahlzeit geplant</span>
+                    <button class="today-btn" onclick="goToToday()" style="margin-bottom:6px;">Heute</button>
+                    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:4px;width:100%;">
+                        <h2 id="calendar-month-label" style="font-size:17px;font-weight:600;color:var(--text-secondary);margin:0;"></h2>
+                        <div style="display:flex;gap:6px;">
+                            <button class="calendar-nav-btn" onclick="navigateCalendar(-1)">‹</button>
+                            <button class="calendar-nav-btn" onclick="navigateCalendar(1)">›</button>
+                        </div>
                     </div>
                 </div>
-                <div class="card">
-                    <div class="anstehend-header" style="margin-top:0;">
-                        <span>📋</span> <span id="calendar-day-plans-label">Wähle einen Tag</span>
+                <div class="cal-scroll" style="flex:1;overflow-y:auto;padding:0 16px calc(96px + env(safe-area-inset-bottom,0px));-webkit-overflow-scrolling:touch;">
+                    <style>.cal-scroll::-webkit-scrollbar{display:none}</style>
+                    <div class="card" id="calendar-grid-container" style="margin-bottom:12px;">
+                        <div class="calendar-grid" id="calendar-grid"></div>
+                        <div class="calendar-legend" style="padding-top:8px;">
+                            <span><span class="dot"></span> Mahlzeit geplant</span>
+                        </div>
                     </div>
-                    <div id="calendar-day-detail"></div>
+                    <div id="calendar-selected-meal" class="card" style="text-align:center;padding:16px;margin-bottom:12px;cursor:pointer;" onclick="openEditView()">
+                        <div style="font-size:12px;color:var(--gray);text-transform:uppercase;letter-spacing:1px;font-weight:600;" id="selected-meal-label">Heute</div>
+                        <div style="font-size:18px;font-weight:700;margin:4px 0 2px;" id="selected-meal-date"></div>
+                        <div style="font-size:13px;color:var(--gray);" id="selected-meal-weekday"></div>
+                        <div style="font-size:15px;margin-top:8px;font-weight:500;color:var(--text);" id="selected-meal-name"></div>
+                    </div>
+                    <div id="calendar-meals-list" style="display:none;"></div>
+                    <div id="speiseplaene-links" class="card" style="margin-top:12px;padding:12px 16px;">
+                        <div class="anstehend-header" style="margin-top:0;">
+                            <span>📄</span> Speisepläne
+                        </div>
+                        <div id="speiseplaene-links-inner"></div>
+                    </div>
                 </div>
             </div>
 
@@ -1001,6 +1214,19 @@
                             <button id="dark-theme-btn" class="theme-btn" onclick="setTheme('dark')">🌙 Dunkel</button>
                             <button id="auto-theme-btn" class="theme-btn active" onclick="setTheme('auto')">🔄 Auto</button>
                         </div>
+                        <div style="margin-top:12px;">
+                            <h3 style="font-size:14px;font-weight:600;color:var(--gray);text-transform:uppercase;letter-spacing:0.5px;margin:0 0 10px 0;">Akzentfarbe</h3>
+                            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                                <button class="accent-btn" data-color="#8A2BE2" style="background:#8A2BE2;" onclick="setAccentColor('#8A2BE2')"></button>
+                                <button class="accent-btn" data-color="#9933CC" style="background:#9933CC;" onclick="setAccentColor('#9933CC')"></button>
+                                <button class="accent-btn" data-color="#007AFF" style="background:#007AFF;" onclick="setAccentColor('#007AFF')"></button>
+                                <button class="accent-btn" data-color="#34C759" style="background:#34C759;" onclick="setAccentColor('#34C759')"></button>
+                                <button class="accent-btn" data-color="#FF9500" style="background:#FF9500;" onclick="setAccentColor('#FF9500')"></button>
+                                <button class="accent-btn" data-color="#FF3B30" style="background:#FF3B30;" onclick="setAccentColor('#FF3B30')"></button>
+                                <button class="accent-btn" data-color="#FF2D55" style="background:#FF2D55;" onclick="setAccentColor('#FF2D55')"></button>
+                                <button class="accent-btn" data-color="#AF52DE" style="background:#AF52DE;" onclick="setAccentColor('#AF52DE')"></button>
+                            </div>
+                        </div>
                     </div>
                     <div class="settings-section">
                         <h3>Daten</h3>
@@ -1013,33 +1239,47 @@
                     📱 PWA · Firebase Firestore<br>
                 </div>
             </div>
-        </div>
 
-        <!-- Meal Edit Modal -->
-        <div id="meal-modal" class="modal-overlay" onclick="closeEditModal(event)">
-            <div class="modal-content" onclick="event.stopPropagation()">
-                <div class="modal-header">
-                    <span style="font-size:20px;">🍽️</span>
-                    <strong style="font-size:18px;" id="modal-title">Mahlzeit bearbeiten</strong>
-                    <button class="modal-close" onclick="closeEditModal()">✕</button>
+            <!-- EDIT VIEW -->
+            <div id="view-edit" class="view hidden">
+                <div class="edit-header">
+                    <button class="edit-back-btn" onclick="closeEditView()">‹</button>
+                    <h1 id="edit-title">Neue Mahlzeit</h1>
                 </div>
-                <div class="modal-body">
-                    <input type="text" id="plan-dish" placeholder="Gericht (z.B. Spaghetti Bolognese)" style="width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--nav-border);background:var(--card-bg);color:var(--text);font-size:15px;">
-                    <div class="mensa-row" style="margin-top:12px;">
-                        <input type="checkbox" id="plan-mensa" onchange="toggleMensa()">
-                        <label for="plan-mensa" style="font-size:13px; font-weight:500; cursor:pointer;">Mensa</label>
-                        <select id="plan-mensa-type" style="display:none;">
-                            <option value="">Mensa wählen...</option>
-                             <option value="bruecke">Kirche</option>
-                            <option value="fleet">Fleet</option>
-                            <option value="bread-soda">Bread &amp; Soda</option>
-                        </select>
+                <div class="edit-scroll">
+                    <div class="edit-section-label">📅 Datum</div>
+                    <div class="edit-card">
+                        <div class="edit-row">
+                            <span class="edit-label">Datum</span>
+                            <input type="date" id="plan-date" class="edit-date-input">
+                        </div>
                     </div>
-                    <textarea id="plan-notes" placeholder="Notizen zu dieser Mahlzeit..." style="width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--nav-border);background:var(--card-bg);color:var(--text);font-size:14px;margin-top:12px;resize:vertical;min-height:60px;font-family:inherit;"></textarea>
-                    <input type="date" id="plan-date" style="width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--nav-border);background:var(--card-bg);color:var(--text);font-size:14px;margin-top:12px;">
-                    <div style="display:flex; gap:8px; margin-top:16px;">
-                        <button class="btn" onclick="saveMeal()" style="flex:1;">💾 Speichern</button>
-                        <button class="btn" onclick="deleteMeal()" style="flex:0; background:rgba(255,59,48,0.8); box-shadow:0 4px 15px rgba(255,59,48,0.3); width:auto;padding:14px 20px;">🗑️</button>
+
+                    <div class="edit-section-label" style="margin-top:16px;">🍽️ Mahlzeit</div>
+                    <div class="edit-card">
+                        <div class="edit-row">
+                            <span class="edit-label">Gericht</span>
+                            <input type="text" id="plan-dish" class="edit-field" placeholder="z.B. Spaghetti" style="text-align:right;">
+                        </div>
+                        <div class="edit-row">
+                            <span class="edit-label">Mensa</span>
+                            <select id="plan-mensa-type" class="edit-mensa-select">
+                                <option value="">Keine</option>
+                                <option value="bruecke">🏛️ Kirche</option>
+                                <option value="fleet">⚓ Fleet</option>
+                                <option value="bread-soda">🥖🥤 Bread &amp; Soda</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="edit-section-label" style="margin-top:16px;">📝 Notizen</div>
+                    <div class="edit-card">
+                        <textarea id="plan-notes" class="edit-textarea" placeholder="Notizen zur Mahlzeit..."></textarea>
+                    </div>
+
+                    <div class="edit-actions">
+                        <button class="edit-save-btn" onclick="saveMeal()">💾 Speichern</button>
+                        <button class="edit-delete-btn" id="edit-delete-btn" onclick="deleteMeal()">🗑️</button>
                     </div>
                 </div>
             </div>
@@ -1048,7 +1288,6 @@
         <!-- Mobile Navigation -->
         <nav class="liquid-nav" id="mobile-nav">
             <div class="nav-tabs">
-                <div class="nav-pill" id="nav-pill"></div>
                 <button class="nav-item active" onclick="showTab('home', this)" data-tab="home">
                     <span class="nav-icon">
                         <svg viewBox="0 0 24 24">
@@ -1068,7 +1307,7 @@
                     </span>
                     <span class="nav-label">Kalender</span>
                 </button>
-                <button class="nav-item" onclick="openEditModal(this)">
+                <button class="nav-item" onclick="openEditView(this, true)">
                     <span class="nav-icon" style="font-size:22px;font-weight:200;line-height:1;">+</span>
                     <span class="nav-label">Neu</span>
                 </button>
@@ -1128,7 +1367,7 @@
             let calendarMonthIdx = calendarMonth.getMonth();
             let mealCache = {};
             let allMealDates = new Set();
-            let calendarView = 'month';
+            let calendarView = 'week';
             let userName = localStorage.getItem('cook-now-user-name') || '';
             let currentTab = 'home';
 
@@ -1156,13 +1395,56 @@
                 return date.toLocaleDateString("de-DE", { weekday: "short", day: "2-digit", month: "2-digit" });
             }
 
+            function renderSelectedDayMeal() {
+                const container = document.getElementById('calendar-selected-meal');
+                const labelEl = document.getElementById('selected-meal-label');
+                const dateEl = document.getElementById('selected-meal-date');
+                const weekdayEl = document.getElementById('selected-meal-weekday');
+                const nameEl = document.getElementById('selected-meal-name');
+                if (!container) return;
+                const dateKey = formatDateKey(selectedDate);
+                const data = (window._mealsMap || {})[dateKey];
+                const isTodayFlag = isToday(selectedDate);
+                labelEl.textContent = isTodayFlag ? 'Heute' : 'Ausgewählter Tag';
+                dateEl.textContent = selectedDate.toLocaleDateString('de-DE', { day: '2-digit', month: 'long', year: 'numeric' });
+                weekdayEl.textContent = weekdayNames[selectedDate.getDay()];
+                if (data) {
+                    nameEl.innerHTML = '🍽️ ' + formatMealDisplay(data) + (data.notes ? ' 📝' : '');
+                } else {
+                    nameEl.textContent = '— Keine Mahlzeit geplant —';
+                }
+            }
+
+            function formatMealDisplay(data) {
+                const dish = data.dish || '';
+                const isMensa = data.mensa;
+                let mensaLabel = '';
+                if (isMensa) {
+                    const t = data.mensaType;
+                    if (t === 'bruecke' || t === 'kirche') mensaLabel = 'Mensa (Kirche)';
+                    else if (t === 'fleet') mensaLabel = 'Mensa (Fleet)';
+                    else if (t === 'bread-soda') mensaLabel = 'Bread & Soda';
+                    else mensaLabel = 'Mensa';
+                }
+                if (dish && mensaLabel) return `${dish} · ${mensaLabel}`;
+                if (mensaLabel) return mensaLabel;
+                if (dish) return dish;
+                return 'Eingetragen';
+            }
+
             // === TAB NAVIGATION ===
             window.showTab = (id, btn, isDesktop) => {
                 document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
                 document.querySelectorAll('.nav-item, .desktop-nav-item').forEach(n => n.classList.remove('active'));
                 document.getElementById('view-' + id).classList.remove('hidden');
-                btn.classList.add('active');
+                if (btn) btn.classList.add('active');
                 currentTab = id;
+
+                // Show/hide dock nav
+                const nav = document.getElementById('mobile-nav');
+                if (nav) {
+                    nav.style.display = id === 'edit' ? 'none' : '';
+                }
 
                 if (id === 'home') {
                     updateGreeting();
@@ -1176,46 +1458,49 @@
                     renderCalendar();
                     renderSpeiseplaene();
                 }
-
-                // Update sliding pill position for mobile nav
-                const nav = document.getElementById('mobile-nav');
-                const pill = document.getElementById('nav-pill');
-                if (nav && pill && !isDesktop && btn.classList.contains('nav-item')) {
-                    const tabsEl = btn.closest('.nav-tabs');
-                    if (tabsEl) {
-                        const tabsRect = tabsEl.getBoundingClientRect();
-                        const btnRect = btn.getBoundingClientRect();
-                        const left = btnRect.left - tabsRect.left;
-                        pill.style.width = btnRect.width + 'px';
-                        pill.style.transform = 'translateX(' + left + 'px)';
-                    }
-                }
             };
 
-            window.openEditModal = (btn) => {
+            window.openEditView = (btn, forceNew) => {
+                localStorage.setItem('cook-now-prev-tab', currentTab);
+                if (forceNew) {
+                    document.getElementById('plan-dish').value = '';
+                    document.getElementById('plan-mensa-type').value = '';
+                    document.getElementById('plan-notes').value = '';
+                    document.getElementById('edit-title').textContent = 'Neue Mahlzeit';
+                } else {
+                    loadMealForDate();
+                    const dish = document.getElementById('plan-dish').value.trim();
+                    const hasData = dish || document.getElementById('plan-mensa-type').value;
+                    document.getElementById('edit-title').textContent = hasData ? 'Mahlzeit bearbeiten' : 'Neue Mahlzeit';
+                }
                 document.getElementById('plan-date').value = formatDateKey(selectedDate);
-                document.getElementById('modal-title').textContent = 'Mahlzeit: ' + formatDisplayDate(selectedDate);
-                document.getElementById('meal-modal').classList.add('open');
+                showTab('edit');
                 setTimeout(() => document.getElementById('plan-dish').focus(), 200);
             };
 
-            window.closeEditModal = (e) => {
-                if (e && e.target !== e.currentTarget) return;
-                document.getElementById('meal-modal').classList.remove('open');
+            window.closeEditView = () => {
+                const prev = localStorage.getItem('cook-now-prev-tab') || 'home';
+                const tabBtn = document.querySelector(`.nav-item[data-tab="${prev}"], .desktop-nav-item[data-tab="${prev}"]`);
+                if (tabBtn) {
+                    const isDesktop = tabBtn.classList.contains('desktop-nav-item');
+                    showTab(prev, tabBtn, isDesktop);
+                } else {
+                    const homeBtn = document.querySelector('.nav-item[data-tab="home"], .desktop-nav-item[data-tab="home"]');
+                    if (homeBtn) showTab('home', homeBtn);
+                }
             };
 
             document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape') closeEditModal();
+                if (e.key === 'Escape') closeEditView();
             });
 
             function updateMealCardSummary() {
                 const el = document.getElementById('meal-card-summary');
                 if (!el) return;
                 const dish = document.getElementById('plan-dish');
-                const mensa = document.getElementById('plan-mensa');
                 const mensaType = document.getElementById('plan-mensa-type');
                 const notes = document.getElementById('plan-notes');
-                if (mensa.checked) {
+                if (mensaType.value) {
                     const t = mensaType.value === 'bruecke' || mensaType.value === 'kirche' ? 'Kirche' : mensaType.value === 'fleet' ? 'Fleet' : mensaType.value === 'bread-soda' ? 'Bread & Soda' : 'Mensa';
                     el.innerHTML = `<span style="color:var(--primary);font-weight:600;">🍽️ Mensa (${t})</span>${notes.value.trim() ? ' <span style="font-size:12px;color:var(--gray);">📝</span>' : ''}`;
                 } else if (dish.value.trim()) {
@@ -1226,40 +1511,30 @@
             }
 
             // === HOME: MEAL PLAN ===
-            window.toggleMensa = () => {
-                const cb = document.getElementById('plan-mensa');
-                const sel = document.getElementById('plan-mensa-type');
-                sel.style.display = cb.checked ? 'inline-block' : 'none';
-                if (!cb.checked) sel.value = '';
-            };
 
-            async function loadMealForDate() {
+            function loadMealForDate() {
                 const dateKey = formatDateKey(selectedDate);
-                const snap = await getDoc(doc(db, "meals", dateKey));
+                const data = (window._mealsMap || {})[dateKey];
                 const dish = document.getElementById('plan-dish');
-                const mensa = document.getElementById('plan-mensa');
                 const mensaType = document.getElementById('plan-mensa-type');
                 const notes = document.getElementById('plan-notes');
 
-                if (snap.exists()) {
-                    const data = snap.data();
+                if (data) {
                     dish.value = data.dish || '';
-                    mensa.checked = data.mensa || false;
                     mensaType.value = data.mensaType || '';
                     notes.value = data.notes || '';
                 } else {
                     dish.value = '';
-                    mensa.checked = false;
                     mensaType.value = '';
                     notes.value = '';
                 }
-                toggleMensa();
                 updateMealCardSummary();
             }
 
             window.saveMeal = async () => {
+                const prevTab = currentTab;
                 if (!navigator.onLine) {
-                    showStatus('home', 'Verbinde dich mit dem Internet um diese Funktion zu nutzen', 'error');
+                    showStatus(prevTab, 'Verbinde dich mit dem Internet um diese Funktion zu nutzen', 'error');
                     return;
                 }
                 const dateVal = document.getElementById('plan-date').value;
@@ -1268,78 +1543,71 @@
                     selectedDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
                 }
                 const dateKey = formatDateKey(selectedDate);
+                const mensaType = document.getElementById('plan-mensa-type').value;
                 const data = {
                     dish: document.getElementById('plan-dish').value.trim(),
-                    mensa: document.getElementById('plan-mensa').checked,
-                    mensaType: document.getElementById('plan-mensa-type').value,
+                    mensa: !!mensaType,
+                    mensaType: mensaType,
                     notes: document.getElementById('plan-notes').value.trim(),
                 };
 
                 if (!data.dish && !data.mensa) {
                     await deleteDoc(doc(db, "meals", dateKey)).catch(() => {});
-                    showStatus('home', 'Eintrag entfernt.', 'success');
+                    closeEditView();
+                    showStatus(prevTab, 'Eintrag entfernt.', 'success');
                 } else {
                     await setDoc(doc(db, "meals", dateKey), data);
-                    showStatus('home', 'Gespeichert für ' + formatDisplayDate(selectedDate), 'success');
+                    closeEditView();
+                    showStatus(prevTab, 'Gespeichert für ' + formatDisplayDate(selectedDate), 'success');
                 }
-                closeEditModal();
-                updateMealCardSummary();
-                renderAnstehend();
-                renderCalendar();
-                updateDateDisplay();
             };
 
             window.deleteMeal = async () => {
+                const prevTab = currentTab;
                 if (!navigator.onLine) {
-                    showStatus('home', 'Verbinde dich mit dem Internet um diese Funktion zu nutzen', 'error');
+                    showStatus(prevTab, 'Verbinde dich mit dem Internet um diese Funktion zu nutzen', 'error');
                     return;
                 }
                 if (!confirm('Mahlzeit wirklich löschen?')) return;
                 const dateKey = formatDateKey(selectedDate);
                 await deleteDoc(doc(db, "meals", dateKey)).catch(() => {});
                 document.getElementById('plan-dish').value = '';
-                document.getElementById('plan-mensa').checked = false;
                 document.getElementById('plan-mensa-type').value = '';
                 document.getElementById('plan-notes').value = '';
-                closeEditModal();
-                updateMealCardSummary();
-                showStatus('home', 'Eintrag entfernt.', 'success');
-                renderAnstehend();
-                renderCalendar();
+                closeEditView();
             };
 
             // === HOME: ANSTEHEND ===
-            async function renderAnstehend() {
+            function renderAnstehend() {
                 const container = document.getElementById('anstehend-list');
-                const days = [];
                 const today = new Date();
                 today.setHours(0,0,0,0);
 
+                const days = [];
                 for (let i = 0; i < 14; i++) {
                     const d = new Date(today);
                     d.setDate(today.getDate() + i);
                     days.push(d);
                 }
 
-                const mealPromises = days.map(d => {
+                const mealsMap = window._mealsMap || {};
+                const meals = days.map(d => {
                     const key = formatDateKey(d);
-                    return getDoc(doc(db, "meals", key)).then(snap => ({ date: d, data: snap.exists() ? snap.data() : null }));
-                });
+                    const data = mealsMap[key];
+                    return data ? { date: d, data } : null;
+                }).filter(Boolean);
 
-                const meals = await Promise.all(mealPromises);
-                const hasMeals = meals.some(m => m.data);
-
-                if (!hasMeals) {
+                if (!meals.length) {
                     container.innerHTML = `<div class="anstehend-empty">Keine Mahlzeiten geplant.<br>Tippe auf einen Tag oben und plane deine nächste Mahlzeit!</div>`;
                     return;
                 }
 
-                container.innerHTML = meals.filter(m => m.data).map(m => {
+                container.innerHTML = meals.map(m => {
                     const isTodayFlag = isToday(m.date);
                     const dayNum = m.date.getDate();
                     const dayLabel = weekdays[m.date.getDay()];
                     const dateStr = formatDisplayDate(m.date);
-                    const mealName = m.data.mensa ? (m.data.mensaType === 'bruecke' || m.data.mensaType === 'kirche' ? '🍽️ Mensa (Kirche)' : m.data.mensaType === 'fleet' ? '🍽️ Mensa (Fleet)' : m.data.mensaType === 'bread-soda' ? '🥖🥤 Bread & Soda' : '🍽️ Mensa') : (m.data.dish || '🍽️ Eingetragen');
+                    const mealName = '🍽️ ' + formatMealDisplay(m.data);
                     const hasIngredients = m.data.ing && m.data.ing.trim();
                     const hasNotes = m.data.notes && m.data.notes.trim();
 
@@ -1360,7 +1628,7 @@
             window.selectAnstehendDate = (dateKey) => {
                 const parts = dateKey.split('-');
                 selectedDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
-                openEditModal();
+                openEditView();
             };
 
             // === CALENDAR ===
@@ -1371,10 +1639,30 @@
                 }
                 const grid = document.getElementById('calendar-grid');
                 const label = document.getElementById('calendar-month-label');
+                const gridContainer = document.getElementById('calendar-grid-container');
 
                 const year = calendarMonth.getFullYear();
                 const month = calendarMonth.getMonth();
                 label.innerText = `${monthNames[month]} ${year}`;
+
+                if (calendarView === 'list') {
+                    gridContainer.style.display = 'none';
+                    document.getElementById('calendar-selected-meal').style.display = 'none';
+                    const grid = document.getElementById('calendar-grid');
+                    if (grid) grid.classList.remove('week-grid');
+                    const keys = [];
+                    const daysInMonth = new Date(year, month + 1, 0).getDate();
+                    for (let d = 1; d <= daysInMonth; d++) {
+                        const date = new Date(year, month, d);
+                        keys.push(formatDateKey(date));
+                    }
+                    document.getElementById('calendar-meals-list').style.display = '';
+                    renderCalendarMealsList(keys, window._mealsMap || {});
+                    return;
+                }
+
+                gridContainer.style.display = '';
+                document.getElementById('calendar-selected-meal').style.display = '';
 
                 const firstDay = new Date(year, month, 1).getDay();
                 const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -1383,8 +1671,16 @@
                 let html = '';
                 weekdays.forEach(d => { html += `<div class="calendar-weekday">${d}</div>`; });
 
-                for (let i = 0; i < firstDay; i++) {
-                    html += `<div></div>`;
+                const prevMonth = new Date(year, month, 0);
+                const prevMonthDays = prevMonth.getDate();
+                for (let i = firstDay - 1; i >= 0; i--) {
+                    const d = prevMonthDays - i;
+                    const date = new Date(year, month - 1, d);
+                    const dateKey = formatDateKey(date);
+                    const hasMeal = allMealDates.has(dateKey);
+                    html += `<button class="calendar-day other-month" onclick="selectCalendarDay('${dateKey}')">
+                        ${d}${hasMeal ? '<span class="meal-dot"></span>' : ''}
+                    </button>`;
                 }
 
                 for (let d = 1; d <= daysInMonth; d++) {
@@ -1399,16 +1695,44 @@
                     </button>`;
                 }
 
+                // Fill remaining cells with next month
+                const totalCells = firstDay + daysInMonth;
+                const remaining = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
+                for (let d = 1; d <= remaining; d++) {
+                    const date = new Date(year, month + 1, d);
+                    const dateKey = formatDateKey(date);
+                    const hasMeal = allMealDates.has(dateKey);
+                    html += `<button class="calendar-day other-month" onclick="selectCalendarDay('${dateKey}')">
+                        ${d}${hasMeal ? '<span class="meal-dot"></span>' : ''}
+                    </button>`;
+                }
+
                 grid.innerHTML = html;
-                updateCalendarDayDetail();
+                grid.classList.remove('week-grid');
+                // Show selected day meal, hide full list
+                document.getElementById('calendar-meals-list').style.display = 'none';
+                document.getElementById('calendar-selected-meal').style.display = '';
+                renderSelectedDayMeal();
             }
 
             window.setCalendarView = (view) => {
                 calendarView = view;
-                document.getElementById('view-month-btn').style.background = view === 'month' ? 'var(--primary)' : 'var(--card-bg)';
-                document.getElementById('view-month-btn').style.color = view === 'month' ? 'white' : 'var(--text)';
-                document.getElementById('view-week-btn').style.background = view === 'week' ? 'var(--primary)' : 'var(--card-bg)';
-                document.getElementById('view-week-btn').style.color = view === 'week' ? 'white' : 'var(--text)';
+                if (view === 'week') {
+                    const d = new Date(calendarMonth);
+                    const day = d.getDay();
+                    const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+                    calendarWeekStart = new Date(d.setDate(diff));
+                    calendarWeekStart.setHours(0,0,0,0);
+                } else {
+                    calendarMonth = new Date(calendarWeekStart);
+                }
+                ['week','month','list'].forEach(v => {
+                    const btn = document.getElementById('view-'+v+'-btn');
+                    if (btn) {
+                        btn.style.background = v === view ? 'var(--primary)' : 'var(--card-bg)';
+                        btn.style.color = v === view ? 'white' : 'var(--text)';
+                    }
+                });
                 renderCalendar();
             };
 
@@ -1422,112 +1746,130 @@
                 calendarWeekStart.setHours(0,0,0,0);
             })();
 
-            async function renderCalendarWeek() {
+            function renderCalendarWeek() {
                 const grid = document.getElementById('calendar-grid');
                 const label = document.getElementById('calendar-month-label');
+                const gridContainer = document.getElementById('calendar-grid-container');
+                if (gridContainer) gridContainer.style.display = '';
                 const weekStart = new Date(calendarWeekStart);
                 const weekEnd = new Date(weekStart);
                 weekEnd.setDate(weekEnd.getDate() + 6);
-                label.innerText = `${weekStart.toLocaleDateString("de-DE", {day:"numeric", month:"long"})} – ${weekEnd.toLocaleDateString("de-DE", {day:"numeric", month:"long", year:"numeric"})}`;
+                const weekNum = getCurrentWeekNumber(weekStart);
+                label.innerText = `KW ${weekNum} · ${weekStart.toLocaleDateString("de-DE", {day:"numeric", month:"long"})} – ${weekEnd.toLocaleDateString("de-DE", {day:"numeric", month:"long", year:"numeric"})}`;
                 const today = new Date();
                 today.setHours(0,0,0,0);
-                let html = '';
+
+                const keys = [];
+                const dates = [];
                 for (let i = 0; i < 7; i++) {
                     const d = new Date(weekStart);
                     d.setDate(weekStart.getDate() + i);
-                    const dateKey = formatDateKey(d);
+                    dates.push(d);
+                    keys.push(formatDateKey(d));
+                }
+
+                const mealsMap = window._mealsMap || {};
+
+                let html = '';
+                for (let i = 0; i < 7; i++) {
+                    const d = dates[i];
+                    const dateKey = keys[i];
                     const isTodayFlag = d.getTime() === today.getTime();
                     const isSelected = d.getTime() === new Date(selectedDate).setHours(0,0,0,0);
                     const dayName = weekdays[d.getDay()];
+                    const dayNum = d.getDate();
+                    const data = mealsMap[dateKey];
                     let mealLabel = '';
                     let mealType = '';
-                    if (allMealDates.has(dateKey)) {
-                        const snap = await getDoc(doc(db, "meals", dateKey));
-                        if (snap.exists()) {
-                            const data = snap.data();
-                            if (data.mensa) {
-                                mealType = 'mensa';
-                                const t = data.mensaType === 'bruecke' || data.mensaType === 'kirche' ? 'Kirche' : data.mensaType === 'fleet' ? 'Fleet' : data.mensaType === 'bread-soda' ? 'B&S' : 'Mensa';
-                                mealLabel = t;
-                            } else {
-                                mealType = 'dish';
-                                mealLabel = data.dish || 'Eingetragen';
-                            }
-                        }
+                    if (data) {
+                        mealType = data.mensa ? 'mensa' : 'dish';
+                        mealLabel = formatMealDisplay(data);
                     }
                     html += `<button class="calendar-week-day ${isTodayFlag ? 'today' : ''} ${isSelected ? 'selected' : ''}" onclick="selectCalendarDay('${dateKey}')">
                         <span class="week-day-name">${dayName}</span>
-                        <span class="week-day-num">${d.getDate()}</span>
+                        <span class="week-day-num">${dayNum}</span>
                         <span class="week-day-meal ${mealType}">${mealLabel || '—'}</span>
                     </button>`;
                 }
-                html += `<div style="grid-column:1/-1;display:flex;gap:6px;justify-content:center;margin-top:8px;">
-                    <button class="btn-small" onclick="navigateWeek(-1)" style="flex:1;">‹ Vorwoche</button>
-                    <button class="btn-small" onclick="navigateWeek(1)" style="flex:1;">Nächste Woche ›</button>
-                </div>`;
                 grid.innerHTML = html;
-                updateCalendarDayDetail();
+                grid.classList.add('week-grid');
+                // Show selected day meal, hide full list
+                document.getElementById('calendar-meals-list').style.display = 'none';
+                document.getElementById('calendar-selected-meal').style.display = '';
+                renderSelectedDayMeal();
             }
 
-            window.navigateWeek = (delta) => {
-                calendarWeekStart.setDate(calendarWeekStart.getDate() + delta * 7);
-                calendarWeekStart = new Date(calendarWeekStart);
+            function renderCalendarMealsList(keys, mealsMap) {
+                const container = document.getElementById('calendar-meals-list');
+                if (!container) return;
+                const meals = keys.map((key, i) => {
+                    const data = mealsMap[key];
+                    if (!data) return null;
+                    const d = new Date(key + 'T12:00:00');
+                    const dayName = weekdayNames[d.getDay()];
+                    const dateStr = formatDisplayDate(d);
+                    const mealName = '🍽️ ' + formatMealDisplay(data);
+                    const hasNotes = data.notes && data.notes.trim();
+                    const isTodayFlag = isToday(d);
+                    return `<div class="anstehend-item ${isTodayFlag ? 'today' : ''}" onclick="selectAnstehendDate('${key}')">
+                        <div class="anstehend-date">
+                            <span class="day-num">${d.getDate()}</span>
+                            <span class="day-label">${weekdays[d.getDay()]}</span>
+                        </div>
+                        <div class="anstehend-info">
+                            <div class="meal-name">${mealName}${hasNotes ? ' 📝' : ''}</div>
+                            <div class="meal-meta">${dayName}, ${dateStr}</div>
+                        </div>
+                        <span style="font-size:12px;color:var(--gray);">›</span>
+                    </div>`;
+                }).filter(Boolean).join('');
+
+                if (!meals) {
+                    container.innerHTML = `<div class="card" style="padding:20px;text-align:center;color:var(--gray);font-size:14px;">Keine Mahlzeiten in diesem Zeitraum</div>`;
+                } else {
+                    container.innerHTML = `<div style="display:flex;flex-direction:column;gap:8px;">${meals}</div>`;
+                }
+            }
+
+            window.goToToday = () => {
+                const today = new Date();
+                today.setHours(0,0,0,0);
+                selectedDate = new Date(today);
+                if (calendarView === 'week') {
+                    const day = today.getDay();
+                    const diff = today.getDate() - day + (day === 0 ? -6 : 1);
+                    calendarWeekStart = new Date(today.setDate(diff));
+                    calendarWeekStart.setHours(0,0,0,0);
+                } else {
+                    calendarMonth = new Date();
+                }
                 renderCalendar();
                 loadAllMealDates();
-                renderSpeiseplaene();
             };
 
-            window.navigateMonth = (delta) => {
-                calendarMonth.setMonth(calendarMonth.getMonth() + delta);
-                calendarMonth = new Date(calendarMonth);
+            window.navigateCalendar = (delta) => {
+                if (calendarView === 'week') {
+                    calendarWeekStart.setDate(calendarWeekStart.getDate() + delta * 7);
+                    calendarWeekStart = new Date(calendarWeekStart);
+                } else {
+                    calendarMonth.setMonth(calendarMonth.getMonth() + delta);
+                    calendarMonth = new Date(calendarMonth);
+                }
                 renderCalendar();
                 loadAllMealDates();
-                renderSpeiseplaene();
             };
 
             window.selectCalendarDay = (dateKey) => {
                 const parts = dateKey.split('-');
                 selectedDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
                 renderCalendar();
-                updateCalendarDayDetail();
             };
-
-            async function updateCalendarDayDetail() {
-                const container = document.getElementById('calendar-day-detail');
-                const label = document.getElementById('calendar-day-plans-label');
-                const dateKey = formatDateKey(selectedDate);
-                const snap = await getDoc(doc(db, "meals", dateKey));
-
-                const dayName = weekdayNames[selectedDate.getDay()];
-                const dateStr = formatDisplayDate(selectedDate);
-                label.innerText = `${dayName}, ${dateStr}`;
-
-                if (snap.exists()) {
-                    const data = snap.data();
-                    if (data.mensa) {
-                        const typeLabel = (data.mensaType === 'bruecke' || data.mensaType === 'kirche') ? 'Kirche' : data.mensaType === 'fleet' ? 'Fleet' : data.mensaType === 'bread-soda' ? 'Bread & Soda' : 'Mensa';
-                        container.innerHTML = `<div style="padding:12px;background:var(--primary-dim);border-radius:12px;">
-                            <div style="font-weight:600;">🍽️ Mensa (${typeLabel})</div>
-                            ${data.dish ? `<div style="font-size:13px;color:var(--gray);margin-top:4px;">${data.dish}</div>` : ''}
-                            ${data.notes ? `<div style="font-size:12px;color:var(--gray);margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,0.1);">📝 ${data.notes}</div>` : ''}
-                        </div>`;
-                    } else {
-                        container.innerHTML = `<div style="padding:12px;background:var(--primary-dim);border-radius:12px;">
-                            ${data.dish ? `<div style="font-weight:600;">${data.dish}</div>` : ''}
-                            ${data.ing ? `<div style="font-size:13px;color:var(--gray);margin-top:4px;">🥕 ${data.ing}</div>` : ''}
-                            ${data.url ? `<div style="margin-top:6px;"><a href="${data.url}" target="_blank" style="color:var(--primary);font-size:13px;text-decoration:none;">🔗 Rezept öffnen</a></div>` : ''}
-                            ${data.notes ? `<div style="font-size:12px;color:var(--gray);margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,0.1);">📝 ${data.notes}</div>` : ''}
-                        </div>`;
-                    }
-                } else {
-                    container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--gray);font-size:14px;">Keine Mahlzeit geplant</div>`;
-                }
-            }
 
             async function loadAllMealDates() {
                 const snap = await getDocs(collection(db, "meals"));
                 allMealDates = new Set();
-                snap.forEach(d => allMealDates.add(d.id));
+                window._mealsMap = {};
+                snap.forEach(d => { allMealDates.add(d.id); window._mealsMap[d.id] = d.data(); });
                 renderCalendar();
             }
 
@@ -1540,7 +1882,7 @@
             }
 
             function renderSpeiseplaene() {
-                const calContainer = document.getElementById('speiseplaene-links');
+                const calContainer = document.getElementById('speiseplaene-links-inner');
                 const homeContainer = document.getElementById('home-speiseplaene-links');
                 if (!calContainer && !homeContainer) return;
                 const now = new Date();
@@ -1573,10 +1915,22 @@
             function loadTheme() {
                 const saved = localStorage.getItem("cook-now-theme") || "auto";
                 setTheme(saved);
+                const savedAccent = localStorage.getItem("cook-now-accent");
+                if (savedAccent) setAccentColor(savedAccent, true);
                 const nameEl = document.getElementById('settings-name');
                 if (nameEl) nameEl.value = userName;
                 updateGreeting();
             }
+
+            window.setAccentColor = (color, skipSave) => {
+                if (!skipSave) localStorage.setItem("cook-now-accent", color);
+                document.documentElement.style.setProperty('--primary', color);
+                const r = parseInt(color.slice(1,3), 16);
+                const g = parseInt(color.slice(3,5), 16);
+                const b = parseInt(color.slice(5,7), 16);
+                document.documentElement.style.setProperty('--primary-dim', `rgba(${r},${g},${b},0.15)`);
+                document.querySelectorAll('.accent-btn').forEach(b => b.classList.toggle('active', b.dataset.color === color));
+            };
 
             window.saveUserName = () => {
                 const val = document.getElementById('settings-name').value.trim();
@@ -1598,7 +1952,7 @@
                 el.textContent = greeting + (userName ? ', ' + userName : '') + '!';
             }
 
-            async function updateTodaySection() {
+            function updateTodaySection() {
                 const today = new Date();
                 const dateEl = document.getElementById('today-date');
                 const weekdayEl = document.getElementById('today-weekday');
@@ -1607,15 +1961,9 @@
                 dateEl.textContent = today.toLocaleDateString('de-DE', { day: '2-digit', month: 'long', year: 'numeric' });
                 weekdayEl.textContent = weekdayNames[today.getDay()];
                 const dateKey = formatDateKey(today);
-                const snap = await getDoc(doc(db, "meals", dateKey));
-                if (snap.exists()) {
-                    const data = snap.data();
-                    if (data.mensa) {
-                        const t = data.mensaType === 'bruecke' || data.mensaType === 'kirche' ? 'Kirche' : data.mensaType === 'fleet' ? 'Fleet' : data.mensaType === 'bread-soda' ? 'Bread & Soda' : 'Mensa';
-                        mealEl.innerHTML = '🍽️ Mensa (' + t + ')' + (data.notes ? ' 📝' : '');
-                    } else {
-                        mealEl.innerHTML = '🍽️ ' + (data.dish || 'Eingetragen') + (data.notes ? ' 📝' : '');
-                    }
+                const data = (window._mealsMap || {})[dateKey];
+                if (data) {
+                    mealEl.innerHTML = '🍽️ ' + formatMealDisplay(data) + (data.notes ? ' 📝' : '');
                 } else {
                     mealEl.textContent = '— Keine Mahlzeit geplant —';
                 }
@@ -1668,16 +2016,26 @@
             }
 
             // === SWIPE GESTURES ===
-            let touchStartX = 0, touchStartY = 0;
+            let touchStartX = 0, touchStartY = 0, touchStartTime = 0;
             document.addEventListener("touchstart", (e) => {
                 touchStartX = e.changedTouches[0].screenX;
                 touchStartY = e.changedTouches[0].screenY;
+                touchStartTime = Date.now();
             });
 
             document.addEventListener("touchend", (e) => {
                 const deltaX = e.changedTouches[0].screenX - touchStartX;
                 const deltaY = e.changedTouches[0].screenY - touchStartY;
-                if (Math.abs(deltaX) > Math.abs(deltaY) * 1.8 && Math.abs(deltaX) > 60) {
+                const elapsed = Date.now() - touchStartTime;
+
+                // Swipe down to close edit view
+                if (currentTab === 'edit' && deltaY > 80 && Math.abs(deltaY) > Math.abs(deltaX) * 1.5) {
+                    closeEditView();
+                    return;
+                }
+
+                // Horizontal swipe between main tabs (not in edit view)
+                if (currentTab !== 'edit' && Math.abs(deltaX) > Math.abs(deltaY) * 1.8 && Math.abs(deltaX) > 60 && elapsed < 400) {
                     const tabs = ['home', 'calendar', 'settings'];
                     const idx = tabs.indexOf(currentTab);
                     if (deltaX > 0 && idx > 0) {
@@ -1693,16 +2051,18 @@
             // === FIREBASE LISTENERS ===
             function initListeners() {
                 onSnapshot(collection(db, "meals"), () => {
-                    loadAllMealDates();
-                    if (currentTab === 'home') {
-                        loadMealForDate();
-                        renderAnstehend();
-                        renderSpeiseplaene();
-                        updateTodaySection();
-                    }
-                    if (currentTab === 'calendar') {
-                        renderSpeiseplaene();
-                    }
+                    loadAllMealDates().then(() => {
+                        if (currentTab === 'home') {
+                            loadMealForDate();
+                            renderAnstehend();
+                            renderSpeiseplaene();
+                            updateTodaySection();
+                        }
+                        if (currentTab === 'calendar') {
+                            renderSpeiseplaene();
+                        }
+                    });
+                    updateBadge();
                 });
             }
 
@@ -1744,31 +2104,16 @@
             loadTheme();
             initListeners();
 
-            // Init pill position
-            setTimeout(() => {
-                const activeItem = document.querySelector('.nav-item.active');
-                const pill = document.getElementById('nav-pill');
-                if (pill && activeItem) {
-                    const tabsEl = activeItem.closest('.nav-tabs');
-                    if (tabsEl) {
-                        const tabsRect = tabsEl.getBoundingClientRect();
-                        const btnRect = activeItem.getBoundingClientRect();
-                        const left = btnRect.left - tabsRect.left;
-                        pill.style.width = btnRect.width + 'px';
-                        pill.style.transform = 'translateX(' + left + 'px)';
-                    }
-                }
-            }, 100);
-
             // Init calendar view buttons
-            document.getElementById('view-month-btn').style.background = 'var(--primary)';
-            document.getElementById('view-month-btn').style.color = 'white';
-            document.getElementById('view-week-btn').style.background = 'var(--card-bg)';
-            document.getElementById('view-week-btn').style.color = 'var(--text)';
+            document.getElementById('view-week-btn').style.background = 'var(--primary)';
+            document.getElementById('view-week-btn').style.color = 'white';
+            document.getElementById('view-month-btn').style.background = 'var(--card-bg)';
+            document.getElementById('view-month-btn').style.color = 'var(--text)';
+            document.getElementById('view-list-btn').style.background = 'var(--card-bg)';
+            document.getElementById('view-list-btn').style.color = 'var(--text)';
 
             // Show calendar on first load, then load everything
             loadAllMealDates().then(() => {
-                renderCalendar();
                 migrateOldData().then(() => {
                     if (currentTab === 'home') {
                         updateDateDisplay();
@@ -1779,6 +2124,19 @@
                     }
                 });
             });
+
+            // === PWA BADGE ===
+            function updateBadge() {
+                if (!navigator.setAppBadge) return;
+                const today = new Date();
+                const dateKey = formatDateKey(today);
+                const data = (window._mealsMap || {})[dateKey];
+                if (data) {
+                    navigator.setAppBadge(1);
+                } else {
+                    navigator.clearAppBadge();
+                }
+            }
 
             // === SERVICE WORKER ===
             if ("serviceWorker" in navigator) {
@@ -1803,6 +2161,9 @@
                 deferredPrompt = e;
             });
             window.addEventListener("appinstalled", () => { deferredPrompt = null; });
+
+            // Init badge on load
+            updateBadge();
         </script>
     </body>
 </html>

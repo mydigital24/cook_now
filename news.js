@@ -6,18 +6,20 @@ export const NEWS_ITEMS = [
     {
         "id": "welcome-v1",
         "title": "Willkommen bei cook_now! 🍽️",
-        "content": "<h3>Willkommen bei cook_now!</h3><p>Dein Mahlzeiten-Planer.</p><ul><li><strong>📅 Wochen- & Monatsansicht</strong></li><li><strong>🍽️ Mensa-Integration</strong></li><li><strong>☁️ Firebase Sync</strong></li></ul>",
+        "content": "<h3>Willkommen bei cook_now!</h3><p>Dein Mahlzeiten-Planer.</p><ul><li><strong>📅 Wochen- & Monatsansicht</strong></li><li><strong>🍽️ Mensa-Integration</strong></li><li><strong>🍱 Glücklich kochen </strong></li></ul> <br> <h3>:-)      <br>Viel Spaß</h3>",
         "showOn": "startup",
         "showMode": "once",
         "priority": "high"
     },
     {
-        "id": "mensa-v1",
-        "title": "🏛️ Mensa-Integration",
-        "content": "<h3>Mensa-Integration</h3><p>Kirche, Fleet, Bread & Soda – direkt beim Planen auswählen.</p> <h4>LOS <br> Viel Spaß beim kochen :-) </h4>",
+        "id": "new-item-1783371193069",
+        "title": "Updates zu Mensaverwaltung",
+        "content": "<h3>Moin </h3><p>Es gibt mal wieder ein Update. Da die BrückeSH ihre Link Struktur verändert und diese Änderung wieder rückgängig gemacht hat kann es zu Problemen bei Speiseplänen kommen. </p>   <h5> Und sonst ? </h5>  <p>Wir haben die Ansicht Anstehend bearbeitet Ein Account System hinzugefügt und viele Schäfchen gezählt <strong> Viel Spaß  : -)",
         "showOn": "startup",
-        "showMode": "once",
-        "priority": "medium"
+        "showMode": "period",
+        "priority": "medium",
+        "validFrom": "2026-07-06",
+        "validUntil": "2026-07-11"
     }
 ];
 

@@ -1233,6 +1233,11 @@
                         <button class="danger-btn" onclick="clearAllData()">🗑️ Alle lokalen Daten löschen</button>
                     </div>
                 </div>
+                    <div class="settings-section">
+                        <h3>Authentifizierung</h3>
+                        <button id="auth-status-btn" class="theme-btn" onclick="showLoginDialog()" style="margin-bottom: 8px;">🔐 Anmelden</button>
+                        <button id="register-btn" class="theme-btn" onclick="openRegistrationEmail()" style="background: var(--primary); color: white; border-color: var(--primary);">📧 Registrieren</button>
+                    </div>
                 <div class="settings-footer">
                     <strong>Cook Now v2.0</strong><br>
                     🎨 Liquid Glass Design<br>
@@ -1326,6 +1331,16 @@
         <script type="module">
             import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
             import {
+                getAuth,
+                signInAnonymously,
+                signInWithEmailAndPassword,
+                createUserWithEmailAndPassword,
+                signOut,
+                onAuthStateChanged,
+                GoogleAuthProvider,
+                signInWithPopup,
+            } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+            import {
                 getFirestore,
                 doc,
                 setDoc,
@@ -1352,7 +1367,171 @@
 
             const app = initializeApp(firebaseConfig);
             const db = getFirestore(app);
+            const auth = getAuth(app);
+
+            // === AUTH STATE ===
+            let currentUser = null;
+            let userEmail = null;
+            let isAuthenticated = false;
             enableIndexedDbPersistence(db).catch((err) => {
+            });
+
+            // === AUDIT LOGGING ===
+            async function logAuditAction(action, details = {}) {
+                if (!currentUser) return;
+                try {
+                    const auditRef = doc(db, "audit_logs", Date.now().toString());
+                    await setDoc(auditRef, {
+                        timestamp: new Date().toISOString(),
+                        userId: currentUser.uid,
+                        userEmail: currentUser.email || userEmail,
+                        action: action,
+                        details: details,
+                        ip: window.navigator?.connection?.effectiveType || "unknown",
+                        userAgent: window.navigator.userAgent
+                    });
+                    console.log('[AUDIT]', action, details);
+                } catch (e) {
+                    console.error('[AUDIT ERROR]', e);
+                }
+            }
+
+            // === AUTH LISTENER ===
+            onAuthStateChanged(auth, (user) => {
+                currentUser = user;
+                userEmail = user?.email || null;
+                isAuthenticated = !!user;
+                console.log('[AUTH] User state changed:', user ? user.email : 'null');
+                if (user) {
+                    logAuditAction('login', { userId: user.uid, email: user.email });
+                }
+                updateAuthUI();
+
+            // === AUTH FUNCTIONS ===
+            async function signInUser(email, password) {
+                try {
+                    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                    logAuditAction('login_success', { email: email });
+                    return true;
+                } catch (e) {
+                    console.error('Login error:', e);
+                    logAuditAction('login_failed', { email: email, error: e.message });
+                    alert('Anmeldung fehlgeschlagen: ' + (e.message || 'Unbekannter Fehler'));
+                    return false;
+                }
+            }
+
+            async function signOutUser() {
+                try {
+                    await signOut(auth);
+                    logAuditAction('logout');
+                } catch (e) {
+                    console.error('Logout error:', e);
+                }
+            }
+
+            async function registerUser(email, password) {
+                try {
+                    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                    logAuditAction('register', { email: email, userId: userCredential.user.uid });
+                    return true;
+                } catch (e) {
+                    console.error('Registration error:', e);
+                    alert('Registrierung fehlgeschlagen: ' + (e.message || 'Unbekannter Fehler'));
+                    return false;
+                }
+            }
+
+            function showLoginDialog() {
+                const email = prompt('E-Mail-Adresse eingeben:');
+                if (!email) return;
+                const password = prompt('Passwort eingeben:');
+                if (!password) return;
+                signInUser(email, password);
+            }
+
+            // === REGISTER BUTTON FUNCTION ===
+            window.openRegistrationEmail = function() {
+                const email = prompt('Deine E-Mail-Adresse für die Registrierung:');
+                if (!email) return;
+                const password = prompt('Dein gewünschtes Passwort:');
+                if (!password) return;
+                
+                const subject = encodeURIComponent('Registrierung für cook_now');
+                const body = encodeURIComponent(`Hallo,\n\nich möchte mich für cook_now registrieren.\n\nMeine Zugangsdaten:\nE-Mail: ${email}\nPasswort: ${password}\n\nBitte richte meinen Account ein.\n\nVielen Dank!`);
+                
+                window.location.href = `mailto:marten@ik.me?subject=${subject}&body=${body}`;
+            };
+            });
+
+            // === AUTH UI UPDATE ===
+            function updateAuthUI() {
+
+            // === AUTH FUNCTIONS ===
+            async function signInUser(email, password) {
+                try {
+                    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                    logAuditAction('login_success', { email: email });
+                    return true;
+                } catch (e) {
+                    console.error('Login error:', e);
+                    logAuditAction('login_failed', { email: email, error: e.message });
+                    alert('Anmeldung fehlgeschlagen: ' + (e.message || 'Unbekannter Fehler'));
+                    return false;
+                }
+            }
+
+            async function signOutUser() {
+                try {
+                    await signOut(auth);
+                    logAuditAction('logout');
+                } catch (e) {
+                    console.error('Logout error:', e);
+                }
+            }
+
+            async function registerUser(email, password) {
+                try {
+                    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                    logAuditAction('register', { email: email, userId: userCredential.user.uid });
+                    return true;
+                } catch (e) {
+                    console.error('Registration error:', e);
+                    alert('Registrierung fehlgeschlagen: ' + (e.message || 'Unbekannter Fehler'));
+                    return false;
+                }
+            }
+
+            function showLoginDialog() {
+                const email = prompt('E-Mail-Adresse eingeben:');
+                if (!email) return;
+                const password = prompt('Passwort eingeben:');
+                if (!password) return;
+                signInUser(email, password);
+            }
+
+            // === REGISTER BUTTON FUNCTION ===
+            window.openRegistrationEmail = function() {
+                const email = prompt('Deine E-Mail-Adresse für die Registrierung:');
+                if (!email) return;
+                const password = prompt('Dein gewünschtes Passwort:');
+                if (!password) return;
+                
+                const subject = encodeURIComponent('Registrierung für cook_now');
+                const body = encodeURIComponent(`Hallo,\n\nich möchte mich für cook_now registrieren.\n\nMeine Zugangsdaten:\nE-Mail: ${email}\nPasswort: ${password}\n\nBitte richte meinen Account ein.\n\nVielen Dank!`);
+                
+                window.location.href = `mailto:marten@ik.me?subject=${subject}&body=${body}`;
+            };
+                const authBtn = document.getElementById('auth-status-btn');
+                const registerBtn = document.getElementById('register-btn');
+                if (authBtn) {
+                    authBtn.textContent = isAuthenticated ? '👤 ' + (userEmail || 'Angemeldet') : '🔐 Anmelden';
+                    authBtn.onclick = isAuthenticated ? signOutUser : showLoginDialog;
+                }
+                if (registerBtn) {
+                    registerBtn.style.display = isAuthenticated ? 'none' : '';
+                }
+            }
                 if (err.code === 'failed-precondition') {
                     console.warn('Firestore persistence: multiple tabs open');
                 } else if (err.code === 'unimplemented') {
@@ -1553,10 +1732,18 @@
 
                 if (!data.dish && !data.mensa) {
                     await deleteDoc(doc(db, "meals", dateKey)).catch(() => {});
+                    // Audit logging
+                    if (currentUser) {
+                        logAuditAction('meal_deleted', { date: dateKey, userEmail: userEmail });
+                    }
                     closeEditView();
                     showStatus(prevTab, 'Eintrag entfernt.', 'success');
                 } else {
                     await setDoc(doc(db, "meals", dateKey), data);
+                    // Audit logging
+                    if (currentUser) {
+                        logAuditAction('meal_saved', { date: dateKey, dish: data.dish, mensa: data.mensa, userEmail: userEmail });
+                    }
                     closeEditView();
                     showStatus(prevTab, 'Gespeichert für ' + formatDisplayDate(selectedDate), 'success');
                 }
@@ -1571,6 +1758,10 @@
                 if (!confirm('Mahlzeit wirklich löschen?')) return;
                 const dateKey = formatDateKey(selectedDate);
                 await deleteDoc(doc(db, "meals", dateKey)).catch(() => {});
+                    // Audit logging
+                    if (currentUser) {
+                        logAuditAction('meal_deleted', { date: dateKey, userEmail: userEmail });
+                    }
                 document.getElementById('plan-dish').value = '';
                 document.getElementById('plan-mensa-type').value = '';
                 document.getElementById('plan-notes').value = '';
@@ -1863,6 +2054,10 @@
                 const parts = dateKey.split('-');
                 selectedDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
                 renderCalendar();
+                // Log the selection if authenticated
+                if (currentUser) {
+                    logAuditAction('calendar_day_selected', { date: dateKey });
+                }
             };
 
             async function loadAllMealDates() {
@@ -2102,6 +2297,8 @@
 
             // === INIT ===
             loadTheme();
+            updateAuthUI();
+            checkAndShowNews();
             initListeners();
 
             // Init calendar view buttons
@@ -2165,5 +2362,6 @@
             // Init badge on load
             updateBadge();
         </script>
+        <script src="news.js"></script>
     </body>
 </html>

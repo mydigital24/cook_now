@@ -1,5 +1,5 @@
-const CACHE_NAME = "cook-now-v6";
-const RUNTIME_CACHE = "cook-now-runtime-v6";
+const CACHE_NAME = "cook-now-v8";
+const RUNTIME_CACHE = "cook-now-runtime-v8";
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -31,6 +31,14 @@ self.addEventListener("fetch", (event) => {
     event.request.url.includes("googleapis.com") ||
     event.request.url.includes("firestore")
   ) {
+    return;
+  }
+
+  const url = new URL(event.request.url);
+
+  // news.js: immer fresh holen, nie cachen
+  if (url.pathname.endsWith("/news.js")) {
+    event.respondWith(fetch(event.request));
     return;
   }
 

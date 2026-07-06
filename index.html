@@ -15,8 +15,10 @@
         <meta name="apple-touch-fullscreen" content="yes" />
         <meta name="msapplication-navbutton-color" content="#9933CC" />
         <link rel="manifest" href="manifest.json" />
-        <link rel="icon" type="image/svg+xml" sizes="any" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%239933CC'/%3E%3Ctext x='32' y='44' font-size='36' text-anchor='middle' fill='white'%3E🍽%3C/text%3E%3C/svg%3E" />
-        <link rel="apple-touch-icon" sizes="180x180" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='36' fill='%239933CC'/%3E%3Ctext x='90' y='120' font-size='90' text-anchor='middle' fill='white'%3E🍽%3C/text%3E%3C/svg%3E" />
+        <link rel="icon" type="image/svg+xml" sizes="any" href="icon.svg" />
+        <link rel="apple-touch-icon" sizes="180x180" href="icon.svg" />
+        <link rel="icon" type="image/png" sizes="192x192" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='36' fill='%239933CC'/%3E%3Ctext x='96' y='126' font-size='96' text-anchor='middle' fill='white'%3E🍽%3C/text%3E%3C/svg%3E" />
+        <link rel="icon" type="image/png" sizes="512x512" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='96' fill='%239933CC'/%3E%3Ctext x='256' y='340' font-size='256' text-anchor='middle' fill='white'%3E🍽%3C/text%3E%3C/svg%3E" />
         <title>cook_now</title>
         <style>
             :root {
@@ -24,6 +26,7 @@
                 --primary-dim: rgba(153, 51, 204, 0.15);
                 --bg: #f2f2f7;
                 --card: rgba(255, 255, 255, 0.95);
+                --card-bg: rgba(255, 255, 255, 0.6);
                 --text: #1c1c1e;
                 --gray: #8e8e93;
                 --danger: #ff3b30;
@@ -33,12 +36,14 @@
                 --nav-border: rgba(255, 255, 255, 0.55);
                 --nav-shadow: 0 8px 32px rgba(0,0,0,0.06);
                 --nav-active: rgba(255,255,255,0.7);
+                --separator-light: rgba(0,0,0,0.1);
             }
 
             @media (prefers-color-scheme: dark) {
                 :root {
                     --bg: #000000;
                     --card: rgba(30, 30, 30, 0.95);
+                    --card-bg: rgba(30, 30, 30, 0.6);
                     --text: #f5f5f7;
                     --gray: #8e8e93;
                     --glass-tint: rgba(0, 0, 0, 0.2);
@@ -46,23 +51,26 @@
                     --nav-border: rgba(255, 255, 255, 0.10);
                     --nav-shadow: 0 8px 32px rgba(0,0,0,0.4);
                     --nav-active: rgba(255,255,255,0.08);
+                    --separator-light: rgba(255,255,255,0.1);
                 }
             }
 
             html.dark-mode {
                 --bg: #000000;
                 --card: rgba(30, 30, 30, 0.95);
+                --card-bg: rgba(30, 30, 30, 0.6);
                 --text: #f5f5f7;
                 --glass-tint: rgba(0, 0, 0, 0.2);
                 --nav-bg: rgba(28, 28, 30, 0.72);
                 --nav-border: rgba(255, 255, 255, 0.10);
                 --nav-shadow: 0 8px 32px rgba(0,0,0,0.4);
-                --nav-active: rgba(255,255,255,0.08);
+                --nav-active: rgba(255, 255, 255, 0.08);
             }
 
             html.light-mode {
                 --bg: #f2f2f7;
                 --card: rgba(255, 255, 255, 0.95);
+                --card-bg: rgba(255, 255, 255, 0.6);
                 --text: #1c1c1e;
                 --glass-tint: rgba(255, 255, 255, 0.1);
                 --nav-bg: rgba(255, 255, 255, 0.35);
@@ -424,7 +432,7 @@
             }
 
             /* === CALENDAR === */
-                border: 1px solid var(--glass-tint);
+            .calendar-select {
                 border-radius: 10px;
                 font-size: 13px;
                 background: rgba(255,255,255,0.5);
@@ -1064,6 +1072,153 @@
             @media (min-width: 1024px) {
                 h1 { font-size: 40px !important; margin-bottom: 32px !important; }
             }
+
+            /* === NEWS POPUP STYLES === */
+            .news-overlay {
+                position: fixed;
+                inset: 0;
+                background: rgba(0,0,0,0.5);
+                backdrop-filter: blur(4px);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 10000;
+                opacity: 0;
+                transition: opacity 0.3s ease;
+                padding: 16px;
+            }
+            .news-overlay.show { opacity: 1; }
+            .news-overlay.hiding { opacity: 0; }
+
+            .news-popup {
+                background: var(--card);
+                border: 1px solid var(--glass-tint);
+                border-radius: 20px;
+                padding: 0;
+                max-width: 90vw;
+                max-height: 85vh;
+                width: 100%;
+                max-width: 420px;
+                overflow: hidden;
+                transform: scale(0.9) translateY(20px);
+                transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+                box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            }
+            .news-overlay.show .news-popup { transform: scale(1) translateY(0); }
+
+            .news-header {
+                display: flex;
+                align-items: flex-start;
+                justify-content: space-between;
+                padding: 20px 20px 12px;
+                border-bottom: 1px solid var(--glass-tint);
+            }
+            .news-header h3 {
+                margin: 0;
+                font-size: 18px;
+                font-weight: 700;
+                color: var(--text);
+                line-height: 1.3;
+            }
+            .news-close {
+                background: none;
+                border: none;
+                font-size: 24px;
+                color: var(--gray);
+                cursor: pointer;
+                padding: 4px 8px;
+                line-height: 1;
+                flex-shrink: 0;
+            }
+            .news-close:active { color: var(--text); }
+
+            .news-content {
+                padding: 16px 20px;
+                overflow-y: auto;
+                max-height: 60vh;
+                font-size: 14px;
+                line-height: 1.6;
+                color: var(--text);
+            }
+            .news-content h3 { margin: 0 0 8px; font-size: 16px; color: var(--primary); }
+            .news-content p { margin: 8px 0; }
+            .news-content ul { margin: 8px 0; padding-left: 20px; }
+            .news-content li { margin: 4px 0; }
+            .news-content strong { color: var(--text); }
+            .news-content a { color: var(--primary); text-decoration: none; }
+            .news-content a:visited { color: var(--primary); }
+
+            .news-actions {
+                display: flex;
+                gap: 8px;
+                padding: 12px 20px 20px;
+                border-top: 1px solid var(--glass-tint);
+            }
+            .news-btn {
+                flex: 1;
+                padding: 14px 16px;
+                border-radius: 12px;
+                font-size: 15px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.15s;
+                border: none;
+            }
+            .news-btn:active { transform: scale(0.97); }
+            .news-btn-dismiss {
+                background: var(--primary);
+                color: white;
+                box-shadow: 0 4px 15px rgba(153,51,204,0.3);
+            }
+            .news-btn-confirm {
+                background: var(--card);
+                color: var(--primary);
+                border: 2px solid var(--primary);
+            }
+            .news-btn-confirm:active { background: var(--primary-dim); }
+
+            @media (max-width: 380px) {
+                .news-popup { max-width: 95vw; }
+                .news-header { padding: 16px 16px 8px; }
+                .news-content { padding: 12px 16px; }
+                .news-actions { padding: 8px 16px 16px; }
+                .news-btn { padding: 12px; font-size: 14px; }
+            }
+            html.dark-mode #view-settings input,
+            html.dark-mode #view-settings input:focus {
+                background: rgba(30,30,30,0.5);
+                border-color: rgba(255,255,255,0.1);
+                color: var(--text);
+            }
+
+            /* === CUSTOM DIALOGS === */
+            .dlg-overlay {
+                position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+                backdrop-filter: blur(4px); display: flex; align-items: center;
+                justify-content: center; z-index: 10002; padding: 16px;
+                opacity: 0; transition: opacity 0.25s ease;
+            }
+            .dlg-overlay.show { opacity: 1; }
+            .dlg-overlay.hiding { opacity: 0; }
+            .dlg-box {
+                background: var(--card); border: 1px solid var(--glass-tint);
+                border-radius: 18px; max-width: 360px; width: 100%;
+                overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+                transform: scale(0.92); transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1);
+            }
+            .dlg-overlay.show .dlg-box { transform: scale(1); }
+            .dlg-icon { font-size: 36px; text-align: center; padding: 20px 20px 0; }
+            .dlg-title { font-size: 18px; font-weight: 700; text-align: center; padding: 8px 20px 4px; color: var(--text); }
+            .dlg-msg { font-size: 14px; text-align: center; padding: 4px 20px 16px; color: var(--gray); line-height: 1.5; }
+            .dlg-msg strong { color: var(--text); }
+            .dlg-input { width: calc(100% - 40px); margin: 0 20px 12px; padding: 12px; border-radius: 10px; border: 1px solid var(--glass-tint); background: rgba(255,255,255,0.5); color: var(--text); font-size: 15px; box-sizing: border-box; }
+            .dlg-actions { display: flex; gap: 8px; padding: 8px 20px 20px; }
+            .dlg-btn { flex: 1; padding: 12px; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; border: none; transition: all 0.15s; }
+            .dlg-btn:active { transform: scale(0.97); }
+            .dlg-btn-primary { background: var(--primary); color: white; box-shadow: 0 4px 15px rgba(153,51,204,0.3); }
+            .dlg-btn-secondary { background: var(--card); color: var(--text); border: 2px solid var(--glass-tint); }
+            .dlg-btn-danger { background: rgba(255,59,48,0.12); color: var(--danger); border: 2px solid rgba(255,59,48,0.3); }
+            html.dark-mode .dlg-input { background: rgba(30,30,30,0.5); border-color: rgba(255,255,255,0.1); color: var(--text); }
         </style>
     </head>
     <body>
@@ -1092,11 +1247,21 @@
                 </span>
                 <span>Kalender</span>
             </button>
+            <button class="desktop-nav-item" onclick="showTab('anstehend', this, true)">
+                <span class="nav-icon">
+                    <svg viewBox="0 0 24 24" style="width:22px;height:22px;display:block;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;">
+                        <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/>
+                        <rect x="9" y="3" width="6" height="4" rx="1"/>
+                        <path d="M9 14l2 2 4-4"/>
+                    </svg>
+                </span>
+                <span>Anstehend</span>
+            </button>
             <button class="desktop-nav-item" onclick="openEditView(this, true)" data-tab="edit" style="justify-content:center;">
                 <span class="nav-icon" style="font-size:24px;font-weight:200;line-height:1;">+</span>
                 <span>Neu</span>
             </button>
-            <div class="desktop-nav-settings">
+<div class="desktop-nav-settings">
                 <button class="desktop-nav-item settings-item" onclick="showTab('settings', this, true)">
                     <span class="nav-icon">
                         <svg viewBox="0 0 24 24" style="width:22px;height:22px;display:block;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;">
@@ -1146,12 +1311,20 @@
                     <div id="anstehend-list"></div>
                 </div>
 
-                <!-- Speisepläne -->
+                <!-- Speisepläne + Änderungen -->
                 <div class="card">
                     <div class="anstehend-header" style="margin-top:0;">
                         <span>📄</span> Speisepläne
                     </div>
                     <div id="home-speiseplaene-links"></div>
+                    <div style="border-top:1px solid var(--glass-tint);margin-top:12px;padding-top:12px;">
+                        <div class="anstehend-header" style="margin-top:0;">
+                            <span>📝</span> Letzte Änderungen
+                        </div>
+                        <div id="audit-list">
+                            <div class="anstehend-empty">Noch keine Änderungen erfasst.</div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -1197,11 +1370,59 @@
                 </div>
             </div>
 
+            <!-- ANSTEHEND VIEW -->
+            <div id="view-anstehend" class="view hidden">
+                <div style="margin-bottom:12px;">
+                    <h1 style="font-size:28px; letter-spacing:-1px; margin:0; color:var(--primary);">Anstehend</h1>
+                    <p style="font-size:13px; color:var(--gray); margin:4px 0 0;">Alle geplanten Mahlzeiten</p>
+                </div>
+                <div id="anstehend-full-list">
+                    <div class="anstehend-empty">Laden...</div>
+                </div>
+            </div>
+
+            <!-- ÄNDERUNGEN DETAIL VIEW -->
+            <div id="view-audit-detail" class="view hidden" style="flex-direction:column;height:100dvh;overflow:hidden;">
+                <div style="padding:calc(16px + env(safe-area-inset-top,20px)) 16px 12px;display:flex;align-items:center;gap:12px;flex-shrink:0;">
+                    <button onclick="showTab('home')" style="background:none;border:none;font-size:24px;color:var(--primary);cursor:pointer;padding:4px;">‹</button>
+                    <h1 style="font-size:22px;font-weight:700;margin:0;letter-spacing:-0.5px;">Alle Änderungen</h1>
+                </div>
+                <div style="flex:1;overflow-y:auto;padding:0 16px calc(96px + env(safe-area-inset-bottom,0px));-webkit-overflow-scrolling:touch;">
+                    <div id="audit-detail-list"></div>
+                </div>
+            </div>
+
             <!-- SETTINGS VIEW -->
             <div id="view-settings" class="view hidden">
                 <div style="margin-bottom:12px;">
                     <h1 style="font-size:32px; letter-spacing:-1px; margin:0; color:var(--primary);">cook_now</h1>
                 </div>
+
+                <!-- Auth Section -->
+                <div class="card" id="auth-section">
+                    <div class="settings-section">
+                        <h3>🔐 Konto</h3>
+                        <div id="auth-logged-out">
+                            <input type="email" id="auth-email" placeholder="E-Mail" style="width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--nav-border);background:var(--card-bg);color:var(--text);font-size:15px;margin-bottom:8px;box-sizing:border-box;" />
+                            <input type="password" id="auth-password" placeholder="Passwort" style="width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--nav-border);background:var(--card-bg);color:var(--text);font-size:15px;margin-bottom:10px;box-sizing:border-box;" />
+                            <div style="display:flex;gap:8px;">
+                                <button onclick="firebaseLogin()" style="flex:1;padding:12px;border-radius:12px;border:none;background:var(--primary);color:white;font-size:14px;font-weight:600;cursor:pointer;">Anmelden</button>
+                                <button onclick="firebaseRegister()" style="flex:1;padding:12px;border-radius:12px;border:2px solid var(--primary);background:transparent;color:var(--primary);font-size:14px;font-weight:600;cursor:pointer;">Registrieren</button>
+                            </div>
+                        </div>
+                        <div id="auth-logged-in" style="display:none;">
+                            <div style="display:flex;align-items:center;gap:10px;padding:10px 0;">
+                                <div style="width:40px;height:40px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;color:white;font-size:18px;font-weight:700;" id="auth-avatar"></div>
+                                <div style="flex:1;min-width:0;">
+                                    <div style="font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" id="auth-user-email"></div>
+                                    <div style="font-size:11px;color:var(--gray);" id="auth-user-id"></div>
+                                </div>
+                            </div>
+                            <button onclick="firebaseLogout()" style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--danger);background:rgba(255,59,48,0.1);color:var(--danger);font-size:13px;font-weight:600;cursor:pointer;">Abmelden</button>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="card">
                     <div class="settings-section">
                         <h3>Profil</h3>
@@ -1230,7 +1451,28 @@
                     </div>
                     <div class="settings-section">
                         <h3>Daten</h3>
+                        <button onclick="syncFromFirebase()" style="width:100%;padding:12px;border-radius:12px;border:2px solid var(--primary);background:var(--primary-dim);color:var(--primary);font-size:14px;font-weight:600;cursor:pointer;margin-bottom:8px;">🔄 Sync – Von Firebase neu laden</button>
                         <button class="danger-btn" onclick="clearAllData()">🗑️ Alle lokalen Daten löschen</button>
+                    </div>
+
+                    <!-- Admin Panel (nur für marten@ik.me) -->
+                    <div class="settings-section" id="admin-section" style="display:none;">
+                        <h3>🛡️ Administration</h3>
+                        <div style="padding:8px 0;">
+                            <div style="font-size:12px;color:var(--gray);margin-bottom:8px;">Registrierte Nutzer</div>
+                            <div id="admin-user-list">
+                                <div style="text-align:center;padding:12px;color:var(--gray);font-size:13px;">Laden...</div>
+                            </div>
+                        </div>
+                        <div style="margin-top:12px;">
+                            <button onclick="adminRefreshUsers()" style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--glass-tint);background:var(--card-bg);color:var(--text);font-size:13px;font-weight:600;cursor:pointer;">🔄 Nutzer aktualisieren</button>
+                        </div>
+                        <div style="margin-top:8px;">
+                            <button onclick="adminShowAuditLog()" style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--glass-tint);background:var(--card-bg);color:var(--text);font-size:13px;font-weight:600;cursor:pointer;">📋 Audit-Log anzeigen</button>
+                        </div>
+                        <div style="margin-top:8px;">
+                            <button onclick="adminShowBannedList()" style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--glass-tint);background:var(--card-bg);color:var(--text);font-size:13px;font-weight:600;cursor:pointer;">🚫 Gebannte Nutzer</button>
+                        </div>
                     </div>
                 </div>
                 <div class="settings-footer">
@@ -1296,6 +1538,16 @@
                     </span>
                     <span class="nav-label">Home</span>
                 </button>
+                <button class="nav-item" onclick="showTab('anstehend', this)" data-tab="anstehend">
+                    <span class="nav-icon">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/>
+                            <rect x="9" y="3" width="6" height="4" rx="1"/>
+                            <path d="M9 14l2 2 4-4"/>
+                        </svg>
+                    </span>
+                    <span class="nav-label">Anstehend</span>
+                </button>
                 <button class="nav-item" onclick="showTab('calendar', this)" data-tab="calendar">
                     <span class="nav-icon">
                         <svg viewBox="0 0 24 24">
@@ -1324,7 +1576,14 @@
         </nav>
 
         <script type="module">
-            import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+            import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+            import {
+                getAuth,
+                signInWithEmailAndPassword,
+                createUserWithEmailAndPassword,
+                onAuthStateChanged,
+                signOut
+            } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
             import {
                 getFirestore,
                 doc,
@@ -1336,22 +1595,131 @@
                 deleteDoc,
                 query,
                 orderBy,
-                startAt,
-                endAt,
                 enableIndexedDbPersistence,
-            } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+                serverTimestamp,
+                addDoc
+            } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+            // === NEWS DATA (inlined from news.js) ===
+            // showMode: 'once' = nur nach Bestätigung nie wieder, 'every-start' = bei jedem Start, 'period' = nur im Zeitraum
+            const NEWS_ITEMS = [
+                { id: 'welcome-v1', title: 'Willkommen bei cook_now! 🍽️', content: '<h3>Willkommen bei cook_now!</h3><p>Dein Mahlzeiten-Planer.</p><ul><li><strong>📅 Wochen- & Monatsansicht</strong></li><li><strong>🍽️ Mensa-Integration</strong></li><li><strong>☁️ Firebase Sync</strong></li></ul>', showOn: 'startup', showMode: 'once', priority: 'high' },
+                { id: 'mensa-v1', title: '🏛️ Mensa-Integration', content: '<h3>Mensa-Integration</h3><p>Kirche, Fleet, Bread & Soda – direkt beim Planen auswählen.</p>', showOn: 'startup', showMode: 'once', priority: 'medium' },
+                { id: 'pwa-v1', title: '📱 Als App installieren', content: '<h3>Als App installieren</h3><p>iOS: Teilen → "Zum Home-Bildschirm"<br>Android: Menü → "App installieren"</p>', showOn: 'startup', showMode: 'once', priority: 'low' },
+                { id: 'calendar-v1', title: '📅 Kalender-Ansichten', content: '<h3>Drei Ansichten</h3><p><strong>Woche</strong> – 7 Tage<br><strong>Monat</strong> – Klassisch<br><strong>Liste</strong> – Alle Mahlzeiten</p>', showOn: 'startup', showMode: 'once', priority: 'medium' },
+                { id: 'auth-v1', title: '🔐 Firebase Authentication', content: '<h3>Authentication aktiv</h3><p>Jede Änderung wird protokolliert: Wer hat was wann geändert?</p>', showOn: 'startup', showMode: 'once', priority: 'high' }
+            ];
+            const NEWS_STORAGE_KEY = 'cook-news-dismissed-v1';
+
+            function getDismissedNews() {
+                try { const s = localStorage.getItem(NEWS_STORAGE_KEY); return s ? JSON.parse(s) : {}; } catch(e) { return {}; }
+            }
+            function isNewsDismissed(newsId) { return !!getDismissedNews()[newsId]; }
+            function dismissNews(newsId) { const d = getDismissedNews(); d[newsId] = Date.now(); localStorage.setItem(NEWS_STORAGE_KEY, JSON.stringify(d)); }
+
+            function getNewsToShow(trigger) {
+                const now = new Date();
+                return NEWS_ITEMS.filter(n => {
+                    if (n.showOn !== trigger) return false;
+                    if (n.showMode === 'once' && isNewsDismissed(n.id)) return false;
+                    if (n.showMode === 'period') {
+                        if (n.validFrom && now < new Date(n.validFrom)) return false;
+                        if (n.validUntil && now > new Date(n.validUntil)) return false;
+                        if (isNewsDismissed(n.id)) return false;
+                    }
+                    if (n.showMode === 'every-start') return true;
+                    return true;
+                }).sort((a, b) => ({ high: 0, medium: 1, low: 2 })[a.priority] - ({ high: 0, medium: 1, low: 2 })[b.priority]);
+            }
+
+            function createNewsPopup(news, onDismiss, onConfirm) {
+                const ov = document.createElement('div');
+                ov.className = 'news-overlay';
+                let actionsHtml = '<button class="news-btn news-btn-dismiss">Erledigt</button>';
+                if (news.showMode === 'once' || news.showMode === 'period') {
+                    actionsHtml += '<button class="news-btn news-btn-confirm">Erledigt bestätigen</button>';
+                }
+                ov.innerHTML = '<div class="news-popup"><div class="news-header"><h3>' + news.title + '</h3><button class="news-close">&times;</button></div><div class="news-content">' + news.content + '</div><div class="news-actions">' + actionsHtml + '</div></div>';
+                const close = () => { ov.classList.add('hiding'); setTimeout(() => ov.remove(), 300); };
+                ov.querySelector('.news-close').onclick = close;
+                ov.onclick = (e) => { if (e.target === ov) close(); };
+                ov.querySelector('.news-btn-dismiss').onclick = () => { onDismiss(news); close(); };
+                const confirmBtn = ov.querySelector('.news-btn-confirm');
+                if (confirmBtn) confirmBtn.onclick = () => { onConfirm(news); close(); };
+                document.body.appendChild(ov);
+                requestAnimationFrame(() => ov.classList.add('show'));
+            }
+
+            function showNewsPopups(trigger) {
+                const list = getNewsToShow(trigger);
+                if (!list.length) return;
+                let i = 0;
+                function next() {
+                    if (i >= list.length) return;
+                    const n = list[i];
+                    createNewsPopup(n,
+                        () => { i++; next(); },
+                        () => { dismissNews(n.id); i++; next(); }
+                    );
+                }
+                next();
+            }
+
+            // === CUSTOM DIALOGS (ersetzt alert/confirm/prompt) ===
+            function dlgShow(opts) {
+                return new Promise(resolve => {
+                    const ov = document.createElement('div');
+                    ov.className = 'dlg-overlay';
+                    let html = '<div class="dlg-box">';
+                    if (opts.icon) html += '<div class="dlg-icon">' + opts.icon + '</div>';
+                    html += '<div class="dlg-title">' + (opts.title || '') + '</div>';
+                    html += '<div class="dlg-msg">' + (opts.msg || '') + '</div>';
+                    if (opts.input) {
+                        html += '<input class="dlg-input" type="' + (opts.inputType || 'text') + '" placeholder="' + (opts.inputPlaceholder || '') + '" value="' + (opts.inputValue || '') + '" />';
+                    }
+                    html += '<div class="dlg-actions">';
+                    if (opts.cancel !== false) html += '<button class="dlg-btn dlg-btn-secondary" data-action="cancel">' + (opts.cancelText || 'Abbrechen') + '</button>';
+                    html += '<button class="dlg-btn ' + (opts.danger ? 'dlg-btn-danger' : 'dlg-btn-primary') + '" data-action="ok">' + (opts.okText || 'OK') + '</button>';
+                    html += '</div></div>';
+                    ov.innerHTML = html;
+                    const close = (val) => { ov.classList.add('hiding'); setTimeout(() => { ov.remove(); resolve(val); }, 250); };
+                    ov.querySelector('[data-action="ok"]').onclick = () => {
+                        const inputEl = ov.querySelector('.dlg-input');
+                        close(inputEl ? inputEl.value : true);
+                    };
+                    const cancelBtn = ov.querySelector('[data-action="cancel"]');
+                    if (cancelBtn) cancelBtn.onclick = () => close(false);
+                    ov.onclick = (e) => { if (e.target === ov) close(false); };
+                    document.body.appendChild(ov);
+                    requestAnimationFrame(() => ov.classList.add('show'));
+                    if (opts.input) setTimeout(() => { const inp = ov.querySelector('.dlg-input'); if (inp) inp.focus(); }, 300);
+                });
+            }
+
+            async function dlgAlert(msg, title, icon) {
+                await dlgShow({ title: title || 'Hinweis', msg, icon: icon || 'ℹ️', cancel: false, okText: 'OK' });
+            }
+
+            async function dlgConfirm(msg, title, icon, danger) {
+                return await dlgShow({ title: title || 'Bestätigen', msg, icon: icon || '❓', okText: 'Ja', cancelText: 'Nein', danger: !!danger });
+            }
+
+            async function dlgPrompt(msg, title, placeholder, defaultValue) {
+                return await dlgShow({ title: title || 'Eingabe', msg, icon: '✏️', input: true, inputPlaceholder: placeholder || '', inputValue: defaultValue || '', okText: 'OK' });
+            }
 
             const firebaseConfig = {
-                apiKey: "AIzaSyAySiMGc3vbfkPwLTuLFnMRdZsBSLvZ1p8",
+                apiKey: "AIzaSyAySiMGc3vbfkPwlTuLFnMRdZsBSLvZ1p8",
                 authDomain: "cooking-plan-12404.firebaseapp.com",
                 projectId: "cooking-plan-12404",
                 storageBucket: "cooking-plan-12404.firebasestorage.app",
-                messagingSenderId: "64677458838",
-                appId: "1:64677458838:web:b42984472bd2dd1402acb7",
+                messagingSenderId: "646774578838",
+                appId: "1:646774578838:web:b42984472bd2dd1402acb7",
             };
 
             const app = initializeApp(firebaseConfig);
             const db = getFirestore(app);
+            const auth = getAuth(app);
+
             enableIndexedDbPersistence(db).catch((err) => {
                 if (err.code === 'failed-precondition') {
                     console.warn('Firestore persistence: multiple tabs open');
@@ -1359,6 +1727,561 @@
                     console.warn('Firestore persistence not supported');
                 }
             });
+
+            // === AUTH STATE ===
+            let currentUser = null;
+            let isAnonymous = true;
+
+            function updateAuthUI(user) {
+                const loggedOut = document.getElementById('auth-logged-out');
+                const loggedIn = document.getElementById('auth-logged-in');
+                if (!loggedOut || !loggedIn) return;
+                if (user && !user.isAnonymous) {
+                    loggedOut.style.display = 'none';
+                    loggedIn.style.display = 'block';
+                    document.getElementById('auth-user-email').textContent = user.email || 'Unbekannt';
+                    document.getElementById('auth-user-id').textContent = 'UID: ' + (user.uid || '').slice(0, 16) + '...';
+                    document.getElementById('auth-avatar').textContent = (user.email || '?')[0].toUpperCase();
+                } else {
+                    loggedOut.style.display = 'block';
+                    loggedIn.style.display = 'none';
+                }
+            }
+
+            onAuthStateChanged(auth, (user) => {
+                currentUser = user;
+                isAnonymous = user ? user.isAnonymous : true;
+                updateAuthUI(user);
+                updateAdminUI();
+                if (user && !user.isAnonymous) {
+                    // Ban-Check
+                    checkIfBanned(user.email).then(banned => {
+                        if (banned) {
+                            signOut(auth);
+                            dlgAlert('Dein Konto wurde gesperrt.<br><br><small>Grund: ' + (banned.reason || 'Admin-Ban') + '</small>', 'Konto gesperrt', '🚫');
+                            return;
+                        }
+                        const onboarded = localStorage.getItem('cook-now-onboarded-' + user.uid);
+                        if (!onboarded) {
+                            localStorage.setItem('cook-now-onboarded-' + user.uid, 'true');
+                            setTimeout(() => { showOnboardingPopup(user.email); }, 1500);
+                        }
+                    });
+                }
+            });
+
+            async function checkIfBanned(email) {
+                if (!email) return false;
+                try {
+                    const snap = await getDoc(doc(db, "banned", email));
+                    return snap.exists() ? snap.data() : false;
+                } catch(e) { return false; }
+            }
+
+            window.firebaseLogin = async () => {
+                const email = document.getElementById('auth-email').value.trim();
+                const pw = document.getElementById('auth-password').value;
+                if (!email || !pw) { await dlgAlert('Bitte E-Mail und Passwort eingeben.', 'Fehlende Eingabe', '⚠️'); return; }
+                try {
+                    await signInWithEmailAndPassword(auth, email, pw);
+                } catch (e) {
+                    await dlgAlert('Anmeldung fehlgeschlagen: ' + e.message, 'Fehler', '❌');
+                }
+            };
+
+            window.firebaseRegister = async () => {
+                const email = document.getElementById('auth-email').value.trim();
+                const pw = document.getElementById('auth-password').value;
+                if (!email || !pw) { await dlgAlert('Bitte E-Mail und Passwort eingeben.', 'Fehlende Eingabe', '⚠️'); return; }
+                try {
+                    await createUserWithEmailAndPassword(auth, email, pw);
+                } catch (e) {
+                    await dlgAlert('Registrierung fehlgeschlagen: ' + e.message, 'Fehler', '❌');
+                }
+            };
+
+            window.firebaseLogout = async () => {
+                const ok = await dlgConfirm('Möchtest du dich abmelden?', 'Abmelden', '🚪');
+                if (!ok) return;
+                try {
+                    await signOut(auth);
+                } catch (e) {
+                    await dlgAlert('Abmeldung fehlgeschlagen: ' + e.message, 'Fehler', '❌');
+                }
+            };
+
+            // === AUDIT LOGGING ===
+            async function auditLog(action, dateKey, data) {
+                try {
+                    await addDoc(collection(db, "audit"), {
+                        action,
+                        dateKey,
+                        data,
+                        userId: currentUser?.uid || 'unknown',
+                        email: currentUser?.email || 'unbekannt',
+                        isAnonymous,
+                        timestamp: serverTimestamp(),
+                        userAgent: navigator.userAgent,
+                    });
+                } catch (e) {
+                    console.warn('Audit-Log fehlgeschlagen:', e);
+                }
+            }
+
+            async function auditLogWithPrev(action, dateKey, data, prevData) {
+                try {
+                    await addDoc(collection(db, "audit"), {
+                        action,
+                        dateKey,
+                        data,
+                        prevData: prevData || null,
+                        userId: currentUser?.uid || 'unknown',
+                        email: currentUser?.email || 'unbekannt',
+                        isAnonymous,
+                        timestamp: serverTimestamp(),
+                        userAgent: navigator.userAgent,
+                    });
+                } catch (e) {
+                    console.warn('Audit-Log fehlgeschlagen:', e);
+                }
+            }
+
+            // === SYNC FROM FIREBASE ===
+            window.syncFromFirebase = async () => {
+                const ok = await dlgConfirm('Alle lokalen Daten löschen und von Firebase neu laden?<br><br><small>Deine lokalen Einstellungen (Design, Name) bleiben erhalten.</small>', 'Sync starten', '🔄');
+                if (!ok) return;
+                try {
+                    const mealKeys = Object.keys(localStorage).filter(k => k.startsWith('cook-now-') && !['cook-now-theme', 'cook-now-user-name', 'cook-now-dismissed', 'cook-news-dismissed-v1'].includes(k));
+                    mealKeys.forEach(k => localStorage.removeItem(k));
+                    await loadAllMealDates();
+                    if (currentTab === 'home') {
+                        loadMealForDate();
+                        renderAnstehend();
+                        renderSpeiseplaene();
+                        updateTodaySection();
+                        renderAuditHome();
+                    }
+                    if (currentTab === 'calendar') renderCalendar();
+                    if (currentTab === 'anstehend') renderAnstehendFull();
+                    await dlgAlert(allMealDates.size + ' Mahlzeiten aktualisiert.', 'Sync abgeschlossen', '✅');
+                } catch (e) {
+                    await dlgAlert('Sync fehlgeschlagen: ' + e.message, 'Fehler', '❌');
+                }
+            };
+
+            function renderAuditHome() {
+                loadRecentAudit();
+            }
+
+            // === ADMIN ===
+            const ADMIN_EMAIL = 'marten@ik.me';
+
+            function isAdmin() {
+                return currentUser && currentUser.email === ADMIN_EMAIL;
+            }
+
+            async function loadRecentAudit() {
+                const container = document.getElementById('audit-list');
+                if (!container) return;
+                try {
+                    const q = query(collection(db, "audit"), orderBy("timestamp", "desc"));
+                    const snap = await getDocs(q);
+                    const entries = [];
+                    snap.forEach(d => entries.push({ id: d.id, ...d.data() }));
+                    const allEntries = entries;
+
+                    const sevenDaysAgo = new Date();
+                    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+                    const recent = allEntries.filter(e => {
+                        const ts = e.timestamp?.toDate ? e.timestamp.toDate() : null;
+                        return ts && ts >= sevenDaysAgo;
+                    }).slice(0, 10);
+
+                    if (!recent.length) {
+                        container.innerHTML = '<div class="anstehend-empty">Keine Änderungen in den letzten 7 Tagen.</div>';
+                        return;
+                    }
+
+                    const actionLabels = {
+                        meal_saved: '🍽️ Mahlzeit geändert',
+                        meal_deleted: '🗑️ Mahlzeit gelöscht',
+                    };
+
+                    let html = recent.map(e => renderAuditEntry(e, actionLabels)).join('');
+
+                    if (allEntries.length > recent.length) {
+                        html += '<div style="text-align:center;padding:12px;"><button onclick="showAllAudit()" style="background:var(--primary);color:white;border:none;padding:10px 24px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;">Mehr anzeigen (' + allEntries.length + ')</button></div>';
+                    }
+
+                    container.innerHTML = html;
+                } catch (e) {
+                    container.innerHTML = '<div class="anstehend-empty">Audit-Log konnte nicht geladen werden.</div>';
+                }
+            }
+
+            function renderAuditEntry(e, actionLabels) {
+                const email = e.email || 'unbekannt';
+                const label = actionLabels[e.action] || e.action;
+                const dateStr = e.dateKey || '—';
+                const ts = e.timestamp?.toDate ? e.timestamp.toDate() : null;
+                const timeStr = ts ? ts.toLocaleString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '';
+                const avatar = (email || '?')[0].toUpperCase();
+
+                let diffHtml = '';
+                if (e.data && e.prevData) {
+                    const changed = [];
+                    const fields = { dish: 'Gericht', mensaType: 'Mensa', notes: 'Notizen' };
+                    for (const [key, label] of Object.entries(fields)) {
+                        if ((e.data[key] || '') !== (e.prevData[key] || '')) {
+                            changed.push(label + ': ' + (e.prevData[key] || '—') + ' → ' + (e.data[key] || '—'));
+                        }
+                    }
+                    if (changed.length) {
+                        diffHtml = '<div style="margin-top:4px;font-size:11px;color:var(--gray);background:var(--primary-dim);padding:4px 8px;border-radius:6px;">' + changed.join('<br>') + '</div>';
+                    }
+                }
+
+                const isAdminFlag = isAdmin();
+                let adminBtn = '';
+                if (isAdminFlag && e.action === 'meal_saved' && e.prevData) {
+                    adminBtn = '<button onclick="adminUndoAudit(\'' + e.id + '\',\'' + e.dateKey + '\')" style="background:rgba(255,59,48,0.1);color:var(--danger);border:1px solid rgba(255,59,48,0.3);border-radius:8px;padding:4px 8px;font-size:10px;font-weight:600;cursor:pointer;margin-top:4px;">Rückgängig</button>';
+                }
+
+                return '<div class="anstehend-item" onclick="openAuditMeal(\'' + e.dateKey + '\')" style="cursor:pointer;">' +
+                    '<div style="width:36px;height:36px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;color:white;font-size:14px;font-weight:700;flex-shrink:0;">' + avatar + '</div>' +
+                    '<div class="anstehend-info">' +
+                        '<div class="meal-name">' + label + (e.data?.dish ? ' — <strong>' + e.data.dish + '</strong>' : '') + '</div>' +
+                        '<div class="meal-meta">' + email + ' · ' + dateStr + (timeStr ? ' · ' + timeStr : '') + '</div>' +
+                        diffHtml + adminBtn +
+                    '</div>' +
+                    '<span style="font-size:12px;color:var(--gray);">›</span>' +
+                    '</div>';
+            }
+
+            window.openAuditMeal = (dateKey) => {
+                const parts = dateKey.split('-');
+                selectedDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+                openEditView();
+            };
+
+            window.showAllAudit = async () => {
+                showTab('audit-detail');
+                const container = document.getElementById('audit-detail-list');
+                if (!container) return;
+                container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--gray);">Laden...</div>';
+                try {
+                    const q = query(collection(db, "audit"), orderBy("timestamp", "desc"));
+                    const snap = await getDocs(q);
+                    const entries = [];
+                    snap.forEach(d => entries.push({ id: d.id, ...d.data() }));
+                    if (!entries.length) {
+                        container.innerHTML = '<div class="anstehend-empty">Keine Einträge vorhanden.</div>';
+                        return;
+                    }
+                    const actionLabels = { meal_saved: '🍽️ Geändert', meal_deleted: '🗑️ Gelöscht' };
+                    container.innerHTML = entries.map(e => renderAuditEntry(e, actionLabels)).join('');
+                } catch (e) {
+                    container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--gray);">Fehler beim Laden.</div>';
+                }
+            };
+
+            window.adminUndoAudit = async (auditId, dateKey) => {
+                if (!isAdmin()) return;
+                const ok = await dlgConfirm('Änderung rückgängig machen?<br><br><small>Die vorherigen Daten werden wiederhergestellt.</small>', 'Rückgängig', '⏪');
+                if (!ok) return;
+                try {
+                    const q = query(collection(db, "audit"), orderBy("timestamp", "desc"));
+                    const snap = await getDocs(q);
+                    let entry = null;
+                    snap.forEach(d => { if (d.id === auditId) entry = { id: d.id, ...d.data() }; });
+                    if (entry && entry.prevData) {
+                        await setDoc(doc(db, "meals", dateKey), entry.prevData);
+                        await auditLog('meal_undo', dateKey, entry.prevData);
+                        await dlgAlert('Änderung wurde rückgängig gemacht.', 'Erfolg', '✅');
+                        renderAuditHome();
+                    } else {
+                        await dlgAlert('Keine vorherigen Daten gefunden.', 'Hinweis', 'ℹ️');
+                    }
+                } catch (e) {
+                    await dlgAlert('Fehler: ' + e.message, 'Fehler', '❌');
+                }
+            };
+
+            async function renderAnstehendFull() {
+                const container = document.getElementById('anstehend-full-list');
+                if (!container) return;
+                const today = new Date();
+                today.setHours(0,0,0,0);
+                const days = [];
+                for (let i = 0; i < 30; i++) {
+                    const d = new Date(today);
+                    d.setDate(today.getDate() + i);
+                    days.push(d);
+                }
+                const mealsMap = window._mealsMap || {};
+                const meals = days.map(d => {
+                    const key = formatDateKey(d);
+                    const data = mealsMap[key];
+                    return data ? { date: d, data } : null;
+                }).filter(Boolean);
+
+                if (!meals.length) {
+                    container.innerHTML = '<div class="anstehend-empty">Keine Mahlzeiten geplant für die nächsten 30 Tage.</div>';
+                    return;
+                }
+
+                container.innerHTML = meals.map(m => {
+                    const isTodayFlag = isToday(m.date);
+                    const dayLabel = weekdayNames[m.date.getDay()];
+                    const dateStr = m.date.toLocaleDateString('de-DE', { day: '2-digit', month: 'long' });
+                    const mealName = '🍽️ ' + formatMealDisplay(m.data);
+                    const hasNotes = m.data.notes && m.data.notes.trim();
+
+                    return '<div class="anstehend-item ' + (isTodayFlag ? 'today' : '') + '" onclick="selectAnstehendDate(\'' + formatDateKey(m.date) + '\')">' +
+                        '<div class="anstehend-date">' +
+                            '<span class="day-num">' + m.date.getDate() + '</span>' +
+                            '<span class="day-label">' + weekdays[m.date.getDay()] + '</span>' +
+                        '</div>' +
+                        '<div class="anstehend-info">' +
+                            '<div class="meal-name">' + mealName + (hasNotes ? ' 📝' : '') + '</div>' +
+                            '<div class="meal-meta">' + dayLabel + ', ' + dateStr + '</div>' +
+                        '</div>' +
+                        '<span style="font-size:12px;color:var(--gray);">›</span>' +
+                    '</div>';
+                }).join('');
+            }
+
+            async function adminRefreshUsers() {
+                const container = document.getElementById('admin-user-list');
+                if (!container) return;
+                container.innerHTML = '<div style="text-align:center;padding:12px;color:var(--gray);font-size:13px;">Laden...</div>';
+                try {
+                    // Banned Users laden
+                    let bannedUsers = {};
+                    try {
+                        const bannedSnap = await getDocs(collection(db, "banned"));
+                        bannedSnap.forEach(d => { bannedUsers[d.id] = d.data(); });
+                    } catch(e) {}
+
+                    // User-Rollen laden
+                    let userRoles = {};
+                    try {
+                        const rolesSnap = await getDocs(collection(db, "userRoles"));
+                        rolesSnap.forEach(d => { userRoles[d.id] = d.data(); });
+                    } catch(e) {}
+
+                    const q = query(collection(db, "audit"), orderBy("timestamp", "desc"));
+                    const snap = await getDocs(q);
+                    const usersMap = {};
+                    snap.forEach(d => {
+                        const data = d.data();
+                        const email = data.email || 'unbekannt';
+                        if (email === 'unbekannt' || email === 'anonym') return;
+                        if (!usersMap[email]) {
+                            usersMap[email] = { email, uid: data.userId, actions: 0, lastActive: data.timestamp };
+                        }
+                        usersMap[email].actions++;
+                    });
+                    const users = Object.values(usersMap);
+                    if (!users.length) {
+                        container.innerHTML = '<div style="text-align:center;padding:12px;color:var(--gray);font-size:13px;">Keine Nutzer gefunden.</div>';
+                        return;
+                    }
+                    container.innerHTML = users.map(u => {
+                        const isAdm = u.email === ADMIN_EMAIL;
+                        const isBanned = !!bannedUsers[u.email];
+                        const role = userRoles[u.email]?.role || 'user';
+                        const ts = u.lastActive?.toDate ? u.lastActive.toDate() : null;
+                        const lastStr = ts ? ts.toLocaleString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '';
+
+                        let roleBadge = '';
+                        if (isAdm) roleBadge = '<span style="background:var(--danger);color:white;padding:1px 6px;border-radius:6px;font-size:10px;font-weight:600;">Admin</span>';
+                        else if (isBanned) roleBadge = '<span style="background:#8e8e93;color:white;padding:1px 6px;border-radius:6px;font-size:10px;font-weight:600;">Gebannt</span>';
+                        else if (role === 'mod') roleBadge = '<span style="background:#FF9500;color:white;padding:1px 6px;border-radius:6px;font-size:10px;font-weight:600;">Mod</span>';
+
+                        let buttons = '';
+                        if (!isAdm) {
+                            buttons = '<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px;">';
+                            if (!isBanned) {
+                                buttons += '<button onclick="adminBanUser(\'' + u.email + '\')" style="background:rgba(255,149,0,0.1);color:#FF9500;border:1px solid rgba(255,149,0,0.3);border-radius:6px;padding:4px 8px;font-size:10px;font-weight:600;cursor:pointer;">🚫 Bannen</button>';
+                                if (role !== 'mod') {
+                                    buttons += '<button onclick="adminSetRole(\'' + u.email + '\',\'mod\')" style="background:rgba(0,122,255,0.1);color:#007AFF;border:1px solid rgba(0,122,255,0.3);border-radius:6px;padding:4px 8px;font-size:10px;font-weight:600;cursor:pointer;">⭐ Mod</button>';
+                                } else {
+                                    buttons += '<button onclick="adminSetRole(\'' + u.email + '\',\'user\')" style="background:rgba(142,142,147,0.1);color:var(--gray);border:1px solid rgba(142,142,147,0.3);border-radius:6px;padding:4px 8px;font-size:10px;font-weight:600;cursor:pointer;">👤 User</button>';
+                                }
+                            } else {
+                                buttons += '<button onclick="adminUnbanUser(\'' + u.email + '\')" style="background:rgba(52,199,89,0.1);color:#34C759;border:1px solid rgba(52,199,89,0.3);border-radius:6px;padding:4px 8px;font-size:10px;font-weight:600;cursor:pointer;">✅ Entbannen</button>';
+                            }
+                            buttons += '<button onclick="adminDeleteUser(\'' + u.email + '\')" style="background:rgba(255,59,48,0.1);color:var(--danger);border:1px solid rgba(255,59,48,0.3);border-radius:6px;padding:4px 8px;font-size:10px;font-weight:600;cursor:pointer;">🗑️</button>';
+                            buttons += '</div>';
+                        }
+
+                        return '<div class="anstehend-item" style="cursor:default;' + (isBanned ? 'opacity:0.5;' : '') + '">' +
+                            '<div style="width:36px;height:36px;border-radius:50%;background:' + (isAdm ? 'var(--danger)' : isBanned ? '#8e8e93' : 'var(--primary)') + ';display:flex;align-items:center;justify-content:center;color:white;font-size:14px;font-weight:700;flex-shrink:0;">' + u.email[0].toUpperCase() + '</div>' +
+                            '<div class="anstehend-info">' +
+                                '<div class="meal-name">' + u.email + ' ' + roleBadge + '</div>' +
+                                '<div class="meal-meta">' + u.actions + ' Aktionen' + (lastStr ? ' · Letzte: ' + lastStr : '') + '</div>' +
+                                buttons +
+                            '</div>' +
+                            '</div>';
+                    }).join('');
+                } catch (e) {
+                    container.innerHTML = '<div style="text-align:center;padding:12px;color:var(--gray);font-size:13px;">Fehler beim Laden.</div>';
+                }
+            }
+
+            window.adminSetRole = async (email, role) => {
+                const roleLabels = { user: 'User', mod: 'Moderator', admin: 'Admin' };
+                const ok = await dlgConfirm('Rolle von <strong>' + email + '</strong> auf <strong>' + roleLabels[role] + '</strong> setzen?', 'Rolle ändern', '👤');
+                if (!ok) return;
+                try {
+                    await setDoc(doc(db, "userRoles", email), { role, setBy: currentUser?.email, timestamp: serverTimestamp() });
+                    await adminRefreshUsers();
+                    await dlgAlert(email + ' ist jetzt ' + roleLabels[role] + '.', 'Rolle geändert', '✅');
+                } catch (e) {
+                    await dlgAlert('Fehler: ' + e.message, 'Fehler', '❌');
+                }
+            };
+
+            window.adminBanUser = async (email) => {
+                const ok = await dlgConfirm('Nutzer <strong>' + email + '</strong> bannen?<br><br><small>Er kann sich danach nicht mehr anmelden und keine Änderungen mehr vornehmen.</small>', 'Nutzer bannen', '🚫', true);
+                if (!ok) return;
+                try {
+                    await setDoc(doc(db, "banned", email), { bannedBy: currentUser?.email, timestamp: serverTimestamp(), reason: 'Admin-Ban' });
+                    await adminRefreshUsers();
+                    await dlgAlert(email + ' wurde gebannt.', 'Gebannt', '🚫');
+                } catch (e) {
+                    await dlgAlert('Fehler: ' + e.message, 'Fehler', '❌');
+                }
+            };
+
+            window.adminUnbanUser = async (email) => {
+                const ok = await dlgConfirm('Nutzer <strong>' + email + '</strong> entbannen?', 'Entbannen', '✅');
+                if (!ok) return;
+                try {
+                    await deleteDoc(doc(db, "banned", email));
+                    await adminRefreshUsers();
+                    await dlgAlert(email + ' wurde entbannt.', 'Entbannt', '✅');
+                } catch (e) {
+                    await dlgAlert('Fehler: ' + e.message, 'Fehler', '❌');
+                }
+            };
+
+            window.adminDeleteUser = async (email) => {
+                const ok = await dlgConfirm('Nutzer <strong>' + email + '</strong> wirklich löschen?<br><br><small>Alle seine Änderungen werden aus dem Audit-Log entfernt.</small>', 'Nutzer löschen', '🗑️', true);
+                if (!ok) return;
+                try {
+                    const q = query(collection(db, "audit"), orderBy("timestamp", "desc"));
+                    const snap = await getDocs(q);
+                    let deletedCount = 0;
+                    for (const d of snap.docs) {
+                        const data = d.data();
+                        if (data.email === email) {
+                            await deleteDoc(doc(db, "audit", d.id));
+                            deletedCount++;
+                        }
+                    }
+                    // Auch Rollen und Ban-Eintrag entfernen
+                    try { await deleteDoc(doc(db, "userRoles", email)); } catch(e) {}
+                    try { await deleteDoc(doc(db, "banned", email)); } catch(e) {}
+                    await adminRefreshUsers();
+                    await dlgAlert(email + ' wurde komplett gelöscht. ' + deletedCount + ' Audit-Einträge entfernt.', 'Gelöscht', '🗑️');
+                } catch (e) {
+                    await dlgAlert('Fehler beim Löschen: ' + e.message, 'Fehler', '❌');
+                }
+            };
+
+            window.adminShowBannedList = async () => {
+                const container = document.getElementById('admin-user-list');
+                if (!container) return;
+                container.innerHTML = '<div style="text-align:center;padding:12px;color:var(--gray);font-size:13px;">Laden...</div>';
+                try {
+                    const snap = await getDocs(collection(db, "banned"));
+                    const entries = [];
+                    snap.forEach(d => entries.push({ email: d.id, ...d.data() }));
+                    if (!entries.length) {
+                        container.innerHTML = '<div style="text-align:center;padding:16px;color:var(--gray);font-size:13px;">Keine gebannten Nutzer.</div>';
+                        return;
+                    }
+                    container.innerHTML = entries.map(e => {
+                        const ts = e.timestamp?.toDate ? e.timestamp.toDate() : null;
+                        const timeStr = ts ? ts.toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
+                        return '<div class="anstehend-item" style="cursor:default;opacity:0.6;">' +
+                            '<div style="width:36px;height:36px;border-radius:50%;background:#8e8e93;display:flex;align-items:center;justify-content:center;color:white;font-size:14px;font-weight:700;flex-shrink:0;">🚫</div>' +
+                            '<div class="anstehend-info">' +
+                                '<div class="meal-name">' + e.email + '</div>' +
+                                '<div class="meal-meta">Gebannt von: ' + (e.bannedBy || '?') + (timeStr ? ' · ' + timeStr : '') + '</div>' +
+                            '</div>' +
+                            '<button onclick="adminUnbanUser(\'' + e.email + '\')" style="background:rgba(52,199,89,0.1);color:#34C759;border:1px solid rgba(52,199,89,0.3);border-radius:8px;padding:6px 10px;font-size:11px;font-weight:600;cursor:pointer;">Entbannen</button>' +
+                            '</div>';
+                    }).join('');
+                } catch (e) {
+                    container.innerHTML = '<div style="text-align:center;padding:12px;color:var(--gray);font-size:13px;">Fehler beim Laden.</div>';
+                }
+            };
+
+            window.adminShowAuditLog = async () => {
+                const container = document.getElementById('admin-user-list');
+                if (!container) return;
+                container.innerHTML = '<div style="text-align:center;padding:12px;color:var(--gray);font-size:13px;">Laden...</div>';
+                try {
+                    const q = query(collection(db, "audit"), orderBy("timestamp", "desc"));
+                    const snap = await getDocs(q);
+                    const entries = [];
+                    snap.forEach(d => entries.push({ id: d.id, ...d.data() }));
+                    const all = entries.slice(0, 50);
+                    if (!all.length) {
+                        container.innerHTML = '<div style="text-align:center;padding:12px;color:var(--gray);font-size:13px;">Keine Einträge.</div>';
+                        return;
+                    }
+                    const actionLabels = { meal_saved: '🍽️ Geändert', meal_deleted: '🗑️ Gelöscht' };
+                    container.innerHTML = all.map(e => {
+                        const ts = e.timestamp?.toDate ? e.timestamp.toDate() : null;
+                        const timeStr = ts ? ts.toLocaleString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '';
+                        return '<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--glass-tint);font-size:12px;">' +
+                            '<span style="min-width:50px;">' + (actionLabels[e.action] || e.action) + '</span>' +
+                            '<span style="flex:1;color:var(--text);">' + (e.data?.dish || e.dateKey || '—') + '</span>' +
+                            '<span style="color:var(--gray);">' + (e.email || '?') + '</span>' +
+                            '<span style="color:var(--gray);min-width:80px;text-align:right;">' + timeStr + '</span>' +
+                            '</div>';
+                    }).join('');
+                } catch (e) {
+                    container.innerHTML = '<div style="text-align:center;padding:12px;color:var(--gray);font-size:13px;">Fehler.</div>';
+                }
+            };
+
+            function updateAdminUI() {
+                const section = document.getElementById('admin-section');
+                if (section) {
+                    section.style.display = isAdmin() ? '' : 'none';
+                    if (isAdmin()) adminRefreshUsers();
+                }
+            }
+
+            function showOnboardingPopup(email) {
+                const ov = document.createElement('div');
+                ov.className = 'news-overlay';
+                ov.innerHTML = '<div class="news-popup">' +
+                    '<div class="news-header"><h3>🎉 Willkommen!</h3></div>' +
+                    '<div class="news-content">' +
+                        '<p>Du bist erfolgreich als <strong>' + email + '</strong> angemeldet!</p>' +
+                        '<p>Du kannst jetzt:</p>' +
+                        '<ul>' +
+                            '<li>Mahlzeiten planen und bearbeiten</li>' +
+                            '<li>Änderungen nachvollziehen (Wer hat was geändert?)</li>' +
+                            '<li>Deine Daten auf allen Geräten synchronisieren</li>' +
+                        '</ul>' +
+                        (isAdmin() ? '<p style="background:var(--primary-dim);padding:8px 12px;border-radius:8px;font-size:12px;"><strong>🛡️ Admin-Zugang:</strong> Du hast Admin-Rechte. Du kannst Änderungen rückgängig machen und Nutzer verwalten.</p>' : '') +
+                    '</div>' +
+                    '<div class="news-actions">' +
+                        '<button class="news-btn news-btn-dismiss">Loslegen!</button>' +
+                    '</div>' +
+                '</div>';
+                ov.querySelector('.news-btn-dismiss').onclick = () => { ov.classList.add('hiding'); setTimeout(() => ov.remove(), 300); };
+                ov.onclick = (e) => { if (e.target === ov) { ov.classList.add('hiding'); setTimeout(() => ov.remove(), 300); } };
+                document.body.appendChild(ov);
+                requestAnimationFrame(() => ov.classList.add('show'));
+            }
 
             // === STATE ===
             let selectedDate = new Date();
@@ -1453,10 +2376,14 @@
                     loadMealForDate();
                     renderAnstehend();
                     renderSpeiseplaene();
+                    renderAuditHome();
                 }
                 if (id === 'calendar') {
                     renderCalendar();
                     renderSpeiseplaene();
+                }
+                if (id === 'anstehend') {
+                    renderAnstehendFull();
                 }
             };
 
@@ -1537,12 +2464,20 @@
                     showStatus(prevTab, 'Verbinde dich mit dem Internet um diese Funktion zu nutzen', 'error');
                     return;
                 }
+                if (currentUser && !currentUser.isAnonymous) {
+                    const banned = await checkIfBanned(currentUser.email);
+                    if (banned) {
+                        await dlgAlert('Dein Konto ist gesperrt. Du kannst keine Mahlzeiten mehr bearbeiten.', 'Gesperrt', '🚫');
+                        return;
+                    }
+                }
                 const dateVal = document.getElementById('plan-date').value;
                 if (dateVal) {
                     const parts = dateVal.split('-');
                     selectedDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
                 }
                 const dateKey = formatDateKey(selectedDate);
+                const prevData = (window._mealsMap || {})[dateKey] || null;
                 const mensaType = document.getElementById('plan-mensa-type').value;
                 const data = {
                     dish: document.getElementById('plan-dish').value.trim(),
@@ -1553,10 +2488,12 @@
 
                 if (!data.dish && !data.mensa) {
                     await deleteDoc(doc(db, "meals", dateKey)).catch(() => {});
+                    await auditLog('meal_deleted', dateKey, { ...data });
                     closeEditView();
                     showStatus(prevTab, 'Eintrag entfernt.', 'success');
                 } else {
                     await setDoc(doc(db, "meals", dateKey), data);
+                    await auditLogWithPrev('meal_saved', dateKey, data, prevData);
                     closeEditView();
                     showStatus(prevTab, 'Gespeichert für ' + formatDisplayDate(selectedDate), 'success');
                 }
@@ -1568,9 +2505,12 @@
                     showStatus(prevTab, 'Verbinde dich mit dem Internet um diese Funktion zu nutzen', 'error');
                     return;
                 }
-                if (!confirm('Mahlzeit wirklich löschen?')) return;
+                const ok = await dlgConfirm('Mahlzeit wirklich löschen?', 'Löschen', '🗑️', true);
+                if (!ok) return;
                 const dateKey = formatDateKey(selectedDate);
+                const data = (window._mealsMap || {})[dateKey] || {};
                 await deleteDoc(doc(db, "meals", dateKey)).catch(() => {});
+                await auditLog('meal_deleted', dateKey, data);
                 document.getElementById('plan-dish').value = '';
                 document.getElementById('plan-mensa-type').value = '';
                 document.getElementById('plan-notes').value = '';
@@ -1861,8 +2801,20 @@
 
             window.selectCalendarDay = (dateKey) => {
                 const parts = dateKey.split('-');
-                selectedDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+                const clickedDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+                clickedDate.setHours(0,0,0,0);
+                selectedDate = clickedDate;
+
+                if (calendarView === 'week') {
+                    const clickedWeekStart = getWeekStart(clickedDate);
+                    clickedWeekStart.setHours(0,0,0,0);
+                    if (clickedWeekStart.getTime() !== calendarWeekStart.getTime()) {
+                        calendarWeekStart = clickedWeekStart;
+                    }
+                }
+
                 renderCalendar();
+                renderSelectedDayMeal();
             };
 
             async function loadAllMealDates() {
@@ -1879,6 +2831,15 @@
                 d.setUTCDate(d.getUTCDate() + 4 - dayNum);
                 const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
                 return Math.ceil(((d - yearStart) / 86400000 + 1) / 7);
+            }
+
+            function getWeekStart(date) {
+                const d = new Date(date);
+                const day = d.getDay();
+                const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+                d.setDate(diff);
+                d.setHours(0,0,0,0);
+                return d;
             }
 
             function renderSpeiseplaene() {
@@ -1985,13 +2946,10 @@
             };
 
             window.clearAllData = async () => {
-                const confirmed = confirm(
-                    "Alle lokalen Daten löschen?\n\n" +
-                    "Folgendes wird entfernt:\n" +
-                    "• Design-Einstellung\n" +
-                    "• Benutzername\n" +
-                    "• App-Cache\n\n" +
-                    "Firebase-Daten (Mahlzeiten) bleiben erhalten."
+                const confirmed = await dlgConfirm(
+                    'Alle lokalen Daten löschen?<br><br>' +
+                    '<small>Folgendes wird entfernt:<br>• Design-Einstellung<br>• Benutzername<br>• App-Cache<br><br>Firebase-Daten (Mahlzeiten) bleiben erhalten.</small>',
+                    'Daten löschen', '🗑️', true
                 );
                 if (!confirmed) return;
                 ["cook-now-theme", "cook-now-user-name"].forEach(k => localStorage.removeItem(k));
@@ -2036,7 +2994,7 @@
 
                 // Horizontal swipe between main tabs (not in edit view)
                 if (currentTab !== 'edit' && Math.abs(deltaX) > Math.abs(deltaY) * 1.8 && Math.abs(deltaX) > 60 && elapsed < 400) {
-                    const tabs = ['home', 'calendar', 'settings'];
+                    const tabs = ['home', 'anstehend', 'calendar', 'settings'];
                     const idx = tabs.indexOf(currentTab);
                     if (deltaX > 0 && idx > 0) {
                         const btn = document.querySelector(`[data-tab="${tabs[idx - 1]}"]`);
@@ -2063,6 +3021,9 @@
                         }
                     });
                     updateBadge();
+                });
+                onSnapshot(collection(db, "audit"), () => {
+                    if (currentTab === 'home') renderAuditHome();
                 });
             }
 
@@ -2164,6 +3125,9 @@
 
             // Init badge on load
             updateBadge();
+
+            // === NEWS POPUP ON STARTUP ===
+            setTimeout(() => { showNewsPopups('startup'); }, 800);
         </script>
     </body>
 </html>

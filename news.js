@@ -18,49 +18,6 @@ export const NEWS_ITEMS = [
         showOn: 'startup',
         showMode: 'once',
         priority: 'medium'
-    },
-    {
-        id: 'pwa-v1',
-        title: '📱 Als App installieren',
-        content: '<h3>Als App installieren</h3><p>iOS: Teilen → "Zum Home-Bildschirm"<br>Android: Menü → "App installieren"</p>',
-        showOn: 'startup',
-        showMode: 'once',
-        priority: 'low'
-    },
-    {
-        id: 'calendar-v1',
-        title: '📅 Kalender-Ansichten',
-        content: '<h3>Drei Ansichten</h3><p><strong>Woche</strong> – 7 Tage<br><strong>Monat</strong> – Klassisch<br><strong>Liste</strong> – Alle Mahlzeiten</p>',
-        showOn: 'startup',
-        showMode: 'once',
-        priority: 'medium'
-    },
-    {
-        id: 'auth-v1',
-        title: '🔐 Firebase Authentication',
-        content: '<h3>Authentication aktiv</h3><p>Jede Änderung wird protokolliert: Wer hat was wann geändert?</p>',
-        showOn: 'startup',
-        showMode: 'once',
-        priority: 'high'
-    },
-    {
-        id: 'weekly-reminder-v1',
-        title: '📅 Wöchentliche Erinnerung',
-        content: '<h3>Planungs-Erinnerung</h3><p>Jeden Sonntag erinnern wir dich an die Wochenplanung.</p>',
-        showOn: 'startup',
-        showMode: 'every-start',
-        dayOfWeek: 0,
-        priority: 'medium'
-    },
-    {
-        id: 'summer-special-v1',
-        title: '☀️ Sommer-Special',
-        content: '<h3>Sommeraktion</h3><p>Probiere diese Woche neue Sommergerichte!</p>',
-        showOn: 'startup',
-        showMode: 'period',
-        validFrom: '2025-06-01',
-        validUntil: '2025-08-31',
-        priority: 'low'
     }
 ];
 

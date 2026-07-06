@@ -4,20 +4,20 @@
 
 export const NEWS_ITEMS = [
     {
-        id: 'welcome-v1',
-        title: 'Willkommen bei cook_now! 🍽️',
-        content: '<h3>Willkommen bei cook_now!</h3><p>Dein Mahlzeiten-Planer.</p><ul><li><strong>📅 Wochen- & Monatsansicht</strong></li><li><strong>🍽️ Mensa-Integration</strong></li><li><strong>☁️ Firebase Sync</strong></li></ul>',
-        showOn: 'startup',
-        showMode: 'once',
-        priority: 'high'
+        "id": "welcome-v1",
+        "title": "Willkommen bei cook_now! 🍽️",
+        "content": "<h3>Willkommen bei cook_now!</h3><p>Dein Mahlzeiten-Planer.</p><ul><li><strong>📅 Wochen- & Monatsansicht</strong></li><li><strong>🍽️ Mensa-Integration</strong></li><li><strong>☁️ Firebase Sync</strong></li></ul>",
+        "showOn": "startup",
+        "showMode": "once",
+        "priority": "high"
     },
     {
-        id: 'mensa-v1',
-        title: '🏛️ Mensa-Integration',
-        content: '<h3>Mensa-Integration</h3><p>Kirche, Fleet, Bread & Soda – direkt beim Planen auswählen.</p>',
-        showOn: 'startup',
-        showMode: 'once',
-        priority: 'medium'
+        "id": "mensa-v1",
+        "title": "🏛️ Mensa-Integration",
+        "content": "<h3>Mensa-Integration</h3><p>Kirche, Fleet, Bread & Soda – direkt beim Planen auswählen.</p> <h4>LOS <br> Viel Spaß beim kochen :-) </h4>",
+        "showOn": "startup",
+        "showMode": "once",
+        "priority": "medium"
     }
 ];
 

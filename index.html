@@ -1620,7 +1620,9 @@
                 getDocs,
                 deleteDoc,
                 query,
+                where,
                 orderBy,
+                limit,
                 enableIndexedDbPersistence,
                 serverTimestamp,
                 addDoc
@@ -2068,20 +2070,19 @@
                 const container = document.getElementById('audit-list');
                 if (!container) return;
                 try {
-                    const q = query(collection(db, "audit"), orderBy("timestamp", "desc"));
+                    const sevenDaysAgo = new Date();
+                    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+                    const q = query(
+                        collection(db, "audit"),
+                        where("timestamp", ">=", sevenDaysAgo),
+                        orderBy("timestamp", "desc"),
+                        limit(10)
+                    );
                     const snap = await getDocs(q);
                     const entries = [];
                     snap.forEach(d => entries.push({ id: d.id, ...d.data() }));
-                    const allEntries = entries;
 
-                    const sevenDaysAgo = new Date();
-                    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-                    const recent = allEntries.filter(e => {
-                        const ts = e.timestamp?.toDate ? e.timestamp.toDate() : null;
-                        return ts && ts >= sevenDaysAgo;
-                    }).slice(0, 10);
-
-                    if (!recent.length) {
+                    if (!entries.length) {
                         container.innerHTML = '<div class="anstehend-empty">Keine Änderungen in den letzten 7 Tagen.</div>';
                         return;
                     }
@@ -2091,11 +2092,8 @@
                         meal_deleted: '🗑️ Mahlzeit gelöscht',
                     };
 
-                    let html = recent.map(e => renderAuditEntry(e, actionLabels)).join('');
-
-                    if (allEntries.length > recent.length) {
-                        html += '<div style="text-align:center;padding:12px;"><button onclick="showAllAudit()" style="background:var(--primary);color:white;border:none;padding:10px 24px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;">Mehr anzeigen (' + allEntries.length + ')</button></div>';
-                    }
+                    let html = entries.map(e => renderAuditEntry(e, actionLabels)).join('');
+                    html += '<div style="text-align:center;padding:12px;"><button onclick="showAllAudit()" style="background:var(--primary);color:white;border:none;padding:10px 24px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;">Alle Änderungen anzeigen</button></div>';
 
                     container.innerHTML = html;
                 } catch (e) {
@@ -2154,7 +2152,7 @@
                 if (!container) return;
                 container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--gray);">Laden...</div>';
                 try {
-                    const q = query(collection(db, "audit"), orderBy("timestamp", "desc"));
+                    const q = query(collection(db, "audit"), orderBy("timestamp", "desc"), limit(100));
                     const snap = await getDocs(q);
                     const entries = [];
                     snap.forEach(d => entries.push({ id: d.id, ...d.data() }));
@@ -2174,17 +2172,19 @@
                 const ok = await dlgConfirm('Änderung rückgängig machen?<br><br><small>Die vorherigen Daten werden wiederhergestellt.</small>', 'Rückgängig', '⏪');
                 if (!ok) return;
                 try {
-                    const q = query(collection(db, "audit"), orderBy("timestamp", "desc"));
-                    const snap = await getDocs(q);
-                    let entry = null;
-                    snap.forEach(d => { if (d.id === auditId) entry = { id: d.id, ...d.data() }; });
-                    if (entry && entry.prevData) {
-                        await setDoc(doc(db, "meals", dateKey), entry.prevData);
-                        await auditLog('meal_undo', dateKey, entry.prevData);
-                        await dlgAlert('Änderung wurde rückgängig gemacht.', 'Erfolg', '✅');
-                        renderAuditHome();
+                    const auditSnap = await getDoc(doc(db, "audit", auditId));
+                    if (auditSnap.exists()) {
+                        const entry = { id: auditSnap.id, ...auditSnap.data() };
+                        if (entry.prevData) {
+                            await setDoc(doc(db, "meals", dateKey), entry.prevData);
+                            await auditLog('meal_undo', dateKey, entry.prevData);
+                            await dlgAlert('Änderung wurde rückgängig gemacht.', 'Erfolg', '✅');
+                            renderAuditHome();
+                        } else {
+                            await dlgAlert('Keine vorherigen Daten gefunden.', 'Hinweis', 'ℹ️');
+                        }
                     } else {
-                        await dlgAlert('Keine vorherigen Daten gefunden.', 'Hinweis', 'ℹ️');
+                        await dlgAlert('Eintrag nicht gefunden.', 'Fehler', '❌');
                     }
                 } catch (e) {
                     await dlgAlert('Fehler: ' + e.message, 'Fehler', '❌');
@@ -2240,34 +2240,27 @@
                 if (!container) return;
                 container.innerHTML = '<div style="text-align:center;padding:12px;color:var(--gray);font-size:13px;">Laden...</div>';
                 try {
-                    // Banned Users laden
+                    const [bannedSnap, rolesSnap, profilesSnap, auditSnap] = await Promise.all([
+                        getDocs(collection(db, "banned")).catch(() => null),
+                        getDocs(collection(db, "userRoles")).catch(() => null),
+                        getDocs(collection(db, "profiles")).catch(() => null),
+                        getDocs(query(collection(db, "audit"), orderBy("timestamp", "desc"), limit(200))).catch(() => null),
+                    ]);
+
                     let bannedUsers = {};
-                    try {
-                        const bannedSnap = await getDocs(collection(db, "banned"));
-                        bannedSnap.forEach(d => { bannedUsers[d.id] = d.data(); });
-                    } catch(e) {}
+                    if (bannedSnap) bannedSnap.forEach(d => { bannedUsers[d.id] = d.data(); });
 
-                    // User-Rollen laden
                     let userRoles = {};
-                    try {
-                        const rolesSnap = await getDocs(collection(db, "userRoles"));
-                        rolesSnap.forEach(d => { userRoles[d.id] = d.data(); });
-                    } catch(e) {}
+                    if (rolesSnap) rolesSnap.forEach(d => { userRoles[d.id] = d.data(); });
 
-                    // Profile laden (profiles/{uid})
                     let profilesByEmail = {};
-                    try {
-                        const profilesSnap = await getDocs(collection(db, "profiles"));
-                        profilesSnap.forEach(d => {
-                            const p = d.data();
-                            if (p.email) profilesByEmail[p.email] = p;
-                        });
-                    } catch(e) {}
+                    if (profilesSnap) profilesSnap.forEach(d => {
+                        const p = d.data();
+                        if (p.email) profilesByEmail[p.email] = p;
+                    });
 
-                    const q = query(collection(db, "audit"), orderBy("timestamp", "desc"));
-                    const snap = await getDocs(q);
-                    const usersMap = {};
-                    snap.forEach(d => {
+                    let usersMap = {};
+                    if (auditSnap) auditSnap.forEach(d => {
                         const data = d.data();
                         const email = data.email || 'unbekannt';
                         if (email === 'unbekannt' || email === 'anonym') return;
@@ -2370,15 +2363,12 @@
                 const ok = await dlgConfirm('Nutzer <strong>' + email + '</strong> wirklich löschen?<br><br><small>Alle seine Änderungen werden aus dem Audit-Log entfernt.</small>', 'Nutzer löschen', '🗑️', true);
                 if (!ok) return;
                 try {
-                    const q = query(collection(db, "audit"), orderBy("timestamp", "desc"));
+                    const q = query(collection(db, "audit"), where("email", "==", email));
                     const snap = await getDocs(q);
                     let deletedCount = 0;
                     for (const d of snap.docs) {
-                        const data = d.data();
-                        if (data.email === email) {
-                            await deleteDoc(doc(db, "audit", d.id));
-                            deletedCount++;
-                        }
+                        await deleteDoc(doc(db, "audit", d.id));
+                        deletedCount++;
                     }
                     // Auch Rollen und Ban-Eintrag entfernen
                     try { await deleteDoc(doc(db, "userRoles", email)); } catch(e) {}
@@ -2424,11 +2414,10 @@
                 if (!container) return;
                 container.innerHTML = '<div style="text-align:center;padding:12px;color:var(--gray);font-size:13px;">Laden...</div>';
                 try {
-                    const q = query(collection(db, "audit"), orderBy("timestamp", "desc"));
+                    const q = query(collection(db, "audit"), orderBy("timestamp", "desc"), limit(50));
                     const snap = await getDocs(q);
-                    const entries = [];
-                    snap.forEach(d => entries.push({ id: d.id, ...d.data() }));
-                    const all = entries.slice(0, 50);
+                    const all = [];
+                    snap.forEach(d => all.push({ id: d.id, ...d.data() }));
                     if (!all.length) {
                         container.innerHTML = '<div style="text-align:center;padding:12px;color:var(--gray);font-size:13px;">Keine Einträge.</div>';
                         return;
@@ -2461,7 +2450,7 @@
                 const ov = document.createElement('div');
                 ov.className = 'news-overlay';
                 ov.innerHTML = '<div class="news-popup">' +
-                    '<div class="news-header"><h3>🎉 Willkommen!</h3></div>' +
+                    '<div class="news-title">🎉 Willkommen!</div>' +
                     '<div class="news-content">' +
                         '<p>Du bist erfolgreich als <strong>' + email + '</strong> angemeldet!</p>' +
                         '<p>Du kannst jetzt:</p>' +
@@ -2473,10 +2462,10 @@
                         (isAdmin() ? '<p style="background:var(--primary-dim);padding:8px 12px;border-radius:8px;font-size:12px;"><strong>🛡️ Admin-Zugang:</strong> Du hast Admin-Rechte. Du kannst Änderungen rückgängig machen und Nutzer verwalten.</p>' : '') +
                     '</div>' +
                     '<div class="news-actions">' +
-                        '<button class="news-btn news-btn-dismiss">Loslegen!</button>' +
+                        '<button class="news-btn news-btn-ok">Loslegen!</button>' +
                     '</div>' +
                 '</div>';
-                ov.querySelector('.news-btn-dismiss').onclick = () => { ov.classList.add('hiding'); setTimeout(() => ov.remove(), 300); };
+                ov.querySelector('.news-btn-ok').onclick = () => { ov.classList.add('hiding'); setTimeout(() => ov.remove(), 300); };
                 ov.onclick = (e) => { if (e.target === ov) { ov.classList.add('hiding'); setTimeout(() => ov.remove(), 300); } };
                 document.body.appendChild(ov);
                 requestAnimationFrame(() => ov.classList.add('show'));
@@ -3238,18 +3227,23 @@
 
             // === FIREBASE LISTENERS ===
             function initListeners() {
-                onSnapshot(collection(db, "meals"), () => {
-                    loadAllMealDates().then(() => {
-                        if (currentTab === 'home') {
-                            loadMealForDate();
-                            renderAnstehend();
-                            renderSpeiseplaene();
-                            updateTodaySection();
-                        }
-                        if (currentTab === 'calendar') {
-                            renderSpeiseplaene();
-                        }
+                onSnapshot(collection(db, "meals"), (snapshot) => {
+                    allMealDates = new Set();
+                    window._mealsMap = {};
+                    snapshot.forEach(d => {
+                        allMealDates.add(d.id);
+                        window._mealsMap[d.id] = d.data();
                     });
+                    renderCalendar();
+                    if (currentTab === 'home') {
+                        loadMealForDate();
+                        renderAnstehend();
+                        renderSpeiseplaene();
+                        updateTodaySection();
+                    }
+                    if (currentTab === 'calendar') {
+                        renderSpeiseplaene();
+                    }
                     updateBadge();
                 });
                 onSnapshot(collection(db, "audit"), () => {

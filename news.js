@@ -2,7 +2,7 @@
 // showMode: 'once' = nur einmal nach Bestätigung, 'every-start' = bei jedem Start, 'period' = nur im Zeitraum
 // validFrom/validUntil: nur für showMode 'period' (ISO-Datumsstring)
 
-export const NEWS_ITEMS = [
+const NEWS_ITEMS = [
     {
         "id": "welcome-v1",
         "title": "Willkommen bei cook_now! 🍽️",
@@ -23,66 +23,108 @@ export const NEWS_ITEMS = [
     }
 ];
 
-export const NEWS_STORAGE_KEY = 'cook-news-dismissed-v1';
+const NEWS_STORAGE_KEY = 'cook-news-dismissed-v1';
 
-export function getDismissedNews() {
-    try { const s = localStorage.getItem(NEWS_STORAGE_KEY); return s ? JSON.parse(s) : {}; } catch(e) { return {}; }
+function getDismissedNews() {
+    try {
+        const s = localStorage.getItem(NEWS_STORAGE_KEY);
+        return s ? JSON.parse(s) : {};
+    } catch (e) {
+        return {};
+    }
 }
 
-export function isNewsDismissed(newsId) {
+function isNewsDismissed(newsId) {
     return !!getDismissedNews()[newsId];
 }
 
-export function dismissNews(newsId) {
+function dismissNews(newsId) {
     const d = getDismissedNews();
-    d[newsId] = Date.now();
+    d[newsId] = true;
     localStorage.setItem(NEWS_STORAGE_KEY, JSON.stringify(d));
 }
 
-export function getNewsToShow(trigger = 'startup') {
+function clearNewsDismissed() {
+    localStorage.removeItem(NEWS_STORAGE_KEY);
+}
+
+function getNewsToShow(trigger) {
+    trigger = trigger || 'startup';
     const now = new Date();
+
+    NEWS_ITEMS.forEach(n => {
+        if (n.showMode === 'period' && n.validUntil && now > new Date(n.validUntil)) {
+            dismissNews(n.id);
+        }
+    });
+
     return NEWS_ITEMS.filter(n => {
         if (n.showOn !== trigger) return false;
+
         if (n.showMode === 'once' && isNewsDismissed(n.id)) return false;
+
         if (n.showMode === 'period') {
+            if (isNewsDismissed(n.id)) return false;
             if (n.validFrom && now < new Date(n.validFrom)) return false;
             if (n.validUntil && now > new Date(n.validUntil)) return false;
-            if (isNewsDismissed(n.id)) return false;
         }
-        if (n.showMode === 'every-start') return true;
+
         return true;
     }).sort((a, b) => ({ high: 0, medium: 1, low: 2 })[a.priority] - ({ high: 0, medium: 1, low: 2 })[b.priority]);
 }
 
-export function createNewsPopup(news, onDismiss, onConfirm) {
+function createNewsPopup(news, onOk) {
     const ov = document.createElement('div');
     ov.className = 'news-overlay';
-    let actionsHtml = '<button class="news-btn news-btn-dismiss">Erledigt</button>';
-    if (news.showMode === 'once' || news.showMode === 'period') {
-        actionsHtml += '<button class="news-btn news-btn-confirm">Erledigt bestätigen</button>';
-    }
-    ov.innerHTML = '<div class="news-popup"><div class="news-header"><h3>' + news.title + '</h3><button class="news-close">&times;</button></div><div class="news-content">' + news.content + '</div><div class="news-actions">' + actionsHtml + '</div></div>';
-    const close = () => { ov.classList.add('hiding'); setTimeout(() => ov.remove(), 300); };
-    ov.querySelector('.news-close').onclick = close;
-    ov.onclick = (e) => { if (e.target === ov) close(); };
-    ov.querySelector('.news-btn-dismiss').onclick = () => { onDismiss(news); close(); };
-    const confirmBtn = ov.querySelector('.news-btn-confirm');
-    if (confirmBtn) confirmBtn.onclick = () => { onConfirm(news); close(); };
+
+    ov.innerHTML =
+        '<div class="news-popup">' +
+            '<div class="news-title">' + news.title + '</div>' +
+            '<div class="news-content">' + news.content + '</div>' +
+            '<div class="news-actions"><button class="news-btn news-btn-ok">OK</button></div>' +
+        '</div>';
+
+    const close = () => {
+        ov.classList.add('hiding');
+        setTimeout(() => ov.remove(), 200);
+    };
+
+    ov.querySelector('.news-btn-ok').onclick = () => {
+        onOk(news);
+        close();
+    };
+
     document.body.appendChild(ov);
     requestAnimationFrame(() => ov.classList.add('show'));
 }
 
-export function showNewsPopups(trigger = 'startup') {
+function showNewsPopups(trigger) {
+    trigger = trigger || 'startup';
     const list = getNewsToShow(trigger);
     if (!list.length) return;
     let i = 0;
     function next() {
         if (i >= list.length) return;
         const n = list[i];
-        createNewsPopup(n,
-            () => { i++; next(); },
-            () => { dismissNews(n.id); i++; next(); }
-        );
+        createNewsPopup(n, () => {
+            if (n.showMode === 'once') {
+                dismissNews(n.id);
+            }
+            i++;
+            next();
+        });
     }
     next();
 }
+
+window.__news = {
+    showNewsPopups: showNewsPopups,
+    getNewsToShow: getNewsToShow,
+    createNewsPopup: createNewsPopup,
+    dismissNews: dismissNews,
+    isNewsDismissed: isNewsDismissed,
+    getDismissedNews: getDismissedNews,
+    clearNewsDismissed: clearNewsDismissed,
+    NEWS_ITEMS: NEWS_ITEMS,
+    NEWS_STORAGE_KEY: NEWS_STORAGE_KEY
+};

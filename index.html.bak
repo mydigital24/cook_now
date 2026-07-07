@@ -1076,19 +1076,18 @@
                 h1 { font-size: 40px !important; margin-bottom: 32px !important; }
             }
 
-            /* === NEWS POPUP STYLES (natives iOS-Alert-Design) === */
+            /* === NEWS POPUP STYLES === */
             .news-overlay {
                 position: fixed;
                 inset: 0;
-                background: rgba(0,0,0,0.4);
-                backdrop-filter: blur(10px) saturate(1.5);
-                -webkit-backdrop-filter: blur(10px) saturate(1.5);
+                background: rgba(0,0,0,0.5);
+                backdrop-filter: blur(4px);
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 z-index: 10000;
                 opacity: 0;
-                transition: opacity 0.25s ease;
+                transition: opacity 0.3s ease;
                 padding: 16px;
             }
             .news-overlay.show { opacity: 1; }
@@ -1096,41 +1095,56 @@
 
             .news-popup {
                 background: var(--card);
-                -webkit-backdrop-filter: blur(20px) saturate(1.8);
-                backdrop-filter: blur(20px) saturate(1.8);
-                border-radius: 14px;
+                border: 1px solid var(--glass-tint);
+                border-radius: 20px;
                 padding: 0;
+                max-width: 90vw;
+                max-height: 85vh;
                 width: 100%;
-                max-width: 270px;
+                max-width: 420px;
                 overflow: hidden;
-                text-align: center;
-                transform: scale(1.15);
-                transition: transform 0.25s cubic-bezier(0.2, 0.9, 0.3, 1);
-                box-shadow: 0 10px 40px rgba(0,0,0,0.25);
+                transform: scale(0.9) translateY(20px);
+                transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+                box-shadow: 0 20px 60px rgba(0,0,0,0.3);
             }
-            .news-overlay.show .news-popup { transform: scale(1); }
+            .news-overlay.show .news-popup { transform: scale(1) translateY(0); }
 
-            .news-title {
-                padding: 20px 20px 0;
-                font-size: 17px;
-                font-weight: 600;
+            .news-header {
+                display: flex;
+                align-items: flex-start;
+                justify-content: space-between;
+                padding: 20px 20px 12px;
+                border-bottom: 1px solid var(--glass-tint);
+            }
+            .news-header h3 {
+                margin: 0;
+                font-size: 18px;
+                font-weight: 700;
                 color: var(--text);
                 line-height: 1.3;
-                text-align: center;
             }
+            .news-close {
+                background: none;
+                border: none;
+                font-size: 24px;
+                color: var(--gray);
+                cursor: pointer;
+                padding: 4px 8px;
+                line-height: 1;
+                flex-shrink: 0;
+            }
+            .news-close:active { color: var(--text); }
 
             .news-content {
-                padding: 8px 20px 16px;
+                padding: 16px 20px;
                 overflow-y: auto;
-                max-height: 40vh;
-                font-size: 13px;
-                line-height: 1.45;
+                max-height: 60vh;
+                font-size: 14px;
+                line-height: 1.6;
                 color: var(--text);
-                text-align: center;
             }
-            .news-content h3 { margin: 0 0 6px; font-size: 15px; color: var(--text); font-weight: 600; }
-            .news-content p { margin: 6px 0; }
-            .news-content ul, .news-content h5 { text-align: left; }
+            .news-content h3 { margin: 0 0 8px; font-size: 16px; color: var(--primary); }
+            .news-content p { margin: 8px 0; }
             .news-content ul { margin: 8px 0; padding-left: 20px; }
             .news-content li { margin: 4px 0; }
             .news-content strong { color: var(--text); }
@@ -1139,30 +1153,39 @@
 
             .news-actions {
                 display: flex;
-                border-top: 0.5px solid var(--separator-light);
+                gap: 8px;
+                padding: 12px 20px 20px;
+                border-top: 1px solid var(--glass-tint);
             }
             .news-btn {
                 flex: 1;
-                padding: 14px 8px;
-                border-radius: 0;
-                font-size: 17px;
+                padding: 14px 16px;
+                border-radius: 12px;
+                font-size: 15px;
                 font-weight: 600;
                 cursor: pointer;
-                transition: background 0.1s;
+                transition: all 0.15s;
                 border: none;
-                background: transparent;
-                color: var(--primary);
-                letter-spacing: 0.3px;
-                text-align: center;
             }
-            .news-btn:active { background: rgba(0,0,0,0.06); }
-            html.dark-mode .news-btn:active { background: rgba(255,255,255,0.08); }
+            .news-btn:active { transform: scale(0.97); }
+            .news-btn-dismiss {
+                background: var(--primary);
+                color: white;
+                box-shadow: 0 4px 15px rgba(153,51,204,0.3);
+            }
+            .news-btn-confirm {
+                background: var(--card);
+                color: var(--primary);
+                border: 2px solid var(--primary);
+            }
+            .news-btn-confirm:active { background: var(--primary-dim); }
 
             @media (max-width: 380px) {
-                .news-popup { max-width: 250px; }
-                .news-title { padding: 16px 14px 0; font-size: 16px; }
-                .news-content { padding: 6px 14px 12px; }
-                .news-btn { padding: 12px 8px; font-size: 16px; }
+                .news-popup { max-width: 95vw; }
+                .news-header { padding: 16px 16px 8px; }
+                .news-content { padding: 12px 16px; }
+                .news-actions { padding: 8px 16px 16px; }
+                .news-btn { padding: 12px; font-size: 14px; }
             }
             html.dark-mode #view-settings input,
             html.dark-mode #view-settings input:focus {
@@ -1171,69 +1194,180 @@
                 color: var(--text);
             }
 
-            /* === LOADING BAR (oben bei Firebase-Init) === */
-            #app-loading-bar {
-                position: fixed;
-                top: 0;
-                left: 0;
-                height: 3px;
-                width: 100%;
-                z-index: 99999;
-                background: linear-gradient(90deg, var(--primary) 0%, #6eb1ff 40%, var(--primary) 80%);
-                background-size: 200% 100%;
-                animation: loadingBarAnim 1.4s ease-in-out infinite;
-                pointer-events: none;
-                opacity: 0;
-                transition: opacity 0.3s ease;
-            }
-            #app-loading-bar.active { opacity: 1; }
-            #app-loading-bar.done { opacity: 0; animation: none; }
-            @keyframes loadingBarAnim {
-                0% { background-position: 200% 0; }
-                100% { background-position: -200% 0; }
-            }
-
-            /* === CUSTOM DIALOGS (natives iOS-Alert-Design) === */
+            /* === CUSTOM DIALOGS === */
             .dlg-overlay {
-                position: fixed; inset: 0; background: rgba(0,0,0,0.4);
-                backdrop-filter: blur(10px) saturate(1.5); -webkit-backdrop-filter: blur(10px) saturate(1.5);
-                display: flex; align-items: center;
+                position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+                backdrop-filter: blur(4px); display: flex; align-items: center;
                 justify-content: center; z-index: 10002; padding: 16px;
-                opacity: 0; transition: opacity 0.2s ease;
+                opacity: 0; transition: opacity 0.25s ease;
             }
             .dlg-overlay.show { opacity: 1; }
             .dlg-overlay.hiding { opacity: 0; }
             .dlg-box {
-                background: var(--card); -webkit-backdrop-filter: blur(20px) saturate(1.8); backdrop-filter: blur(20px) saturate(1.8);
-                border-radius: 14px; max-width: 270px; width: 100%;
-                overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.25);
-                transform: scale(1.15); transition: transform 0.2s cubic-bezier(0.2,0.9,0.3,1);
+                background: var(--card); border: 1px solid var(--glass-tint);
+                border-radius: 18px; max-width: 360px; width: 100%;
+                overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+                transform: scale(0.92); transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1);
             }
             .dlg-overlay.show .dlg-box { transform: scale(1); }
-            .dlg-icon { font-size: 30px; text-align: center; padding: 18px 16px 0; }
-            .dlg-title { font-size: 16px; font-weight: 600; text-align: center; padding: 6px 16px 2px; color: var(--text); }
-            .dlg-msg { font-size: 13px; text-align: center; padding: 2px 16px 14px; color: var(--text); opacity: 0.7; line-height: 1.4; }
-            .dlg-msg strong { color: var(--text); opacity: 1; }
-            .dlg-input { width: calc(100% - 32px); margin: 0 16px 12px; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--glass-tint); background: rgba(118,118,128,0.12); color: var(--text); font-size: 15px; box-sizing: border-box; text-align: center; }
-            .dlg-actions { display: flex; border-top: 0.5px solid var(--separator-light); }
-            .dlg-btn { flex: 1; padding: 12px 8px; font-size: 16px; font-weight: 500; cursor: pointer; border: none; background: transparent; color: var(--primary); transition: background 0.1s; border-radius: 0; }
-            .dlg-btn:active { background: rgba(0,0,0,0.06); }
-            html.dark-mode .dlg-btn:active { background: rgba(255,255,255,0.08); }
-            .dlg-btn + .dlg-btn { border-left: 0.5px solid var(--separator-light); }
-            .dlg-btn-primary { font-weight: 600; }
-            .dlg-btn-secondary { font-weight: 400; }
-            .dlg-btn-danger { color: var(--danger); font-weight: 600; }
-            html.dark-mode .dlg-input { background: rgba(118,118,128,0.24); border-color: rgba(255,255,255,0.1); color: var(--text); }
+            .dlg-icon { font-size: 36px; text-align: center; padding: 20px 20px 0; }
+            .dlg-title { font-size: 18px; font-weight: 700; text-align: center; padding: 8px 20px 4px; color: var(--text); }
+            .dlg-msg { font-size: 14px; text-align: center; padding: 4px 20px 16px; color: var(--gray); line-height: 1.5; }
+            .dlg-msg strong { color: var(--text); }
+            .dlg-input { width: calc(100% - 40px); margin: 0 20px 12px; padding: 12px; border-radius: 10px; border: 1px solid var(--glass-tint); background: rgba(255,255,255,0.5); color: var(--text); font-size: 15px; box-sizing: border-box; }
+            .dlg-actions { display: flex; gap: 8px; padding: 8px 20px 20px; }
+            .dlg-btn { flex: 1; padding: 12px; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; border: none; transition: all 0.15s; }
+            .dlg-btn:active { transform: scale(0.97); }
+            .dlg-btn-primary { background: var(--primary); color: white; box-shadow: 0 4px 15px rgba(153,51,204,0.3); }
+            .dlg-btn-secondary { background: var(--card); color: var(--text); border: 2px solid var(--glass-tint); }
+            .dlg-btn-danger { background: rgba(255,59,48,0.12); color: var(--danger); border: 2px solid rgba(255,59,48,0.3); }
+            html.dark-mode .dlg-input { background: rgba(30,30,30,0.5); border-color: rgba(255,255,255,0.1); color: var(--text); }
+
+            @media (max-width: 768px) {
+                /* iOS native styling for custom dialogs and news popups */
+                .dlg-overlay, .news-overlay {
+                    backdrop-filter: blur(20px) !important;
+                    -webkit-backdrop-filter: blur(20px) !important;
+                    background: rgba(0, 0, 0, 0.4) !important;
+                }
+                .dlg-box, .news-popup {
+                    background: rgba(255, 255, 255, 0.82) !important;
+                    border: none !important;
+                    border-radius: 14px !important;
+                    max-width: 270px !important;
+                    width: 100% !important;
+                    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15) !important;
+                    text-align: center !important;
+                    transform: scale(0.9) !important;
+                    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+                }
+                html.dark-mode .dlg-box, html.dark-mode .news-popup {
+                    background: rgba(37, 37, 37, 0.82) !important;
+                }
+                .dlg-overlay.show .dlg-box, .news-overlay.show .news-popup {
+                    transform: scale(1) !important;
+                }
+                
+                .dlg-icon {
+                    padding: 20px 16px 0 !important;
+                    font-size: 32px !important;
+                }
+                
+                .dlg-title, .news-header {
+                    font-size: 17px !important;
+                    font-weight: 600 !important;
+                    line-height: 22px !important;
+                    color: var(--text) !important;
+                    text-align: center !important;
+                    padding: 20px 16px 4px !important;
+                    border-bottom: none !important;
+                    display: block !important;
+                }
+                
+                .dlg-title h3, .news-header h3 {
+                    font-size: 17px !important;
+                    font-weight: 600 !important;
+                    margin: 0 !important;
+                    text-align: center !important;
+                }
+                
+                .news-close {
+                    display: none !important; /* Hide close x in iOS style */
+                }
+                
+                .dlg-msg, .news-content {
+                    font-size: 13px !important;
+                    font-weight: 400 !important;
+                    line-height: 18px !important;
+                    color: var(--text) !important;
+                    text-align: center !important;
+                    padding: 4px 16px 20px !important;
+                    margin: 0 !important;
+                    box-sizing: border-box !important;
+                }
+                
+                .news-content h3 {
+                    font-size: 14px !important;
+                    margin: 4px 0 !important;
+                }
+                
+                .dlg-input {
+                    width: calc(100% - 32px) !important;
+                    margin: 0 16px 16px !important;
+                    padding: 8px 10px !important;
+                    border-radius: 6px !important;
+                    border: 0.5px solid rgba(0, 0, 0, 0.15) !important;
+                    background: rgba(200, 200, 200, 0.15) !important;
+                    font-size: 14px !important;
+                    box-sizing: border-box !important;
+                }
+                
+                html.dark-mode .dlg-input {
+                    border-color: rgba(255, 255, 255, 0.15) !important;
+                    background: rgba(255, 255, 255, 0.1) !important;
+                }
+                
+                .dlg-actions, .news-actions {
+                    display: flex !important;
+                    flex-direction: row !important;
+                    gap: 0 !important;
+                    padding: 0 !important;
+                    margin: 0 !important;
+                    border-top: 0.5px solid rgba(0, 0, 0, 0.15) !important;
+                }
+                
+                html.dark-mode .dlg-actions, html.dark-mode .news-actions {
+                    border-top-color: rgba(255, 255, 255, 0.15) !important;
+                }
+                
+                .dlg-btn, .news-btn {
+                    flex: 1 !important;
+                    background: transparent !important;
+                    border: none !important;
+                    box-shadow: none !important;
+                    border-radius: 0 !important;
+                    margin: 0 !important;
+                    padding: 12px 8px !important;
+                    font-size: 17px !important;
+                    color: #007AFF !important;
+                    text-align: center !important;
+                    font-weight: 400 !important;
+                }
+                
+                .dlg-btn:active, .news-btn:active {
+                    background: rgba(0, 0, 0, 0.05) !important;
+                    transform: none !important;
+                }
+                
+                html.dark-mode .dlg-btn:active, html.dark-mode .news-btn:active {
+                    background: rgba(255, 255, 255, 0.05) !important;
+                }
+                
+                .dlg-btn-primary, .news-btn-ok {
+                    font-weight: 600 !important;
+                }
+                
+                .dlg-btn-secondary {
+                    border: none !important;
+                    border-right: 0.5px solid rgba(0, 0, 0, 0.15) !important;
+                    color: #007AFF !important;
+                }
+                
+                html.dark-mode .dlg-btn-secondary {
+                    border-right-color: rgba(255, 255, 255, 0.15) !important;
+                }
+                
+                .dlg-btn-danger {
+                    color: #FF3B30 !important;
+                    border: none !important;
+                }
+            }
         </style>
     </head>
     <body>
-        <div id="app-loading-bar" class="active"></div>
         <!-- Desktop Sidebar -->
         <nav class="desktop-nav">
-            <div class="desktop-nav-header" style="display:flex;align-items:center;gap:8px;">
-                <img src="icon.svg" alt="" width="26" height="26" style="border-radius:7px;display:block;flex-shrink:0;">
-                <span>cook_now</span>
-            </div>
+            <div class="desktop-nav-header">cook_now</div>
             <button class="desktop-nav-item active" onclick="showTab('home', this, true)">
                 <span class="nav-icon">
                     <svg viewBox="0 0 24 24" style="width:22px;height:22px;display:block;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;">
@@ -1340,7 +1474,7 @@
             <!-- CALENDAR VIEW -->
             <div id="view-calendar" class="view hidden" style="flex-direction:column;height:100dvh;overflow:hidden;">
                 <div class="calendar-header" style="padding:calc(8px + env(safe-area-inset-top,20px)) 16px 8px;flex-shrink:0;">
-                    <h1 style="font-size:28px;letter-spacing:-0.5px;margin:0 0 6px;color:var(--primary);align-self:flex-start;display:flex;align-items:center;gap:8px;"><img src="icon.svg" alt="" width="28" height="28" style="border-radius:8px;display:block;">cook_now</h1>
+                    <h1 style="font-size:28px;letter-spacing:-0.5px;margin:0 0 6px;color:var(--primary);align-self:flex-start;">cook_now</h1>
                     <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap;width:100%;">
                         <button class="btn-small" id="view-week-btn" onclick="setCalendarView('week')" style="background:var(--primary);color:white;">Woche</button>
                         <button class="btn-small" id="view-month-btn" onclick="setCalendarView('month')">Monat</button>
@@ -1404,7 +1538,7 @@
             <!-- SETTINGS VIEW -->
             <div id="view-settings" class="view hidden">
                 <div style="margin-bottom:12px;">
-                    <h1 style="font-size:32px; letter-spacing:-1px; margin:0; color:var(--primary);display:flex;align-items:center;gap:10px;"><img src="icon.svg" alt="" width="32" height="32" style="border-radius:9px;display:block;">cook_now</h1>
+                    <h1 style="font-size:32px; letter-spacing:-1px; margin:0; color:var(--primary);">cook_now</h1>
                 </div>
 
                 <!-- Auth Section -->
@@ -1412,17 +1546,38 @@
                     <div class="settings-section">
                         <h3>🔐 Konto</h3>
                         <div id="auth-logged-out">
-                            <input type="email" id="auth-email" autocomplete="email" placeholder="E-Mail" style="width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--nav-border);background:var(--card-bg);color:var(--text);font-size:15px;margin-bottom:8px;box-sizing:border-box;" />
-                            <input type="password" id="auth-password" autocomplete="current-password" placeholder="Passwort (mind. 6 Zeichen)" style="width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--nav-border);background:var(--card-bg);color:var(--text);font-size:15px;margin-bottom:6px;box-sizing:border-box;" />
-                            <div id="auth-error" style="display:none;font-size:12px;color:var(--danger);padding:2px 2px 8px;line-height:1.4;"></div>
-                            <div style="display:flex;gap:8px;">
-                                <button id="auth-login-btn" onclick="firebaseLogin()" style="flex:1;padding:12px;border-radius:12px;border:none;background:var(--primary);color:white;font-size:14px;font-weight:600;cursor:pointer;">Anmelden</button>
-                                <button id="auth-register-btn" onclick="firebaseRegister()" style="flex:1;padding:12px;border-radius:12px;border:2px solid var(--primary);background:transparent;color:var(--primary);font-size:14px;font-weight:600;cursor:pointer;">Registrieren</button>
+                            <!-- Toggle tabs between Login & Register -->
+                            <div style="display:flex;gap:10px;margin-bottom:12px;border-bottom:1px solid var(--nav-border);padding-bottom:8px;">
+                                <button id="auth-tab-login" onclick="setAuthMode('login')" style="flex:1;background:none;border:none;color:var(--primary);font-weight:bold;font-size:14px;cursor:pointer;opacity:1;padding:4px 0;">Anmelden</button>
+                                <button id="auth-tab-register" onclick="setAuthMode('register')" style="flex:1;background:none;border:none;color:var(--text);font-weight:normal;font-size:14px;cursor:pointer;opacity:0.6;padding:4px 0;">Registrieren</button>
                             </div>
+                            
+                            <div id="auth-error-msg" style="display:none;color:var(--danger);font-size:13px;margin-bottom:8px;text-align:center;"></div>
+                            
+                            <input type="email" id="auth-email" placeholder="E-Mail" style="width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--nav-border);background:var(--card-bg);color:var(--text);font-size:15px;margin-bottom:8px;box-sizing:border-box;" />
+                            <input type="password" id="auth-password" placeholder="Passwort" style="width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--nav-border);background:var(--card-bg);color:var(--text);font-size:15px;margin-bottom:8px;box-sizing:border-box;" />
+                            
+                            <!-- Register fields -->
+                            <div id="auth-register-fields" style="display:none;">
+                                <input type="text" id="auth-name" placeholder="Profilname" style="width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--nav-border);background:var(--card-bg);color:var(--text);font-size:15px;margin-bottom:8px;box-sizing:border-box;" />
+                                <div style="margin-bottom:12px;">
+                                    <div style="font-size:13px;color:var(--gray);margin-bottom:6px;">Profilfarbe:</div>
+                                    <div id="auth-color-picker" style="display:flex;gap:10px;flex-wrap:wrap;">
+                                        <button class="accent-btn active" data-color="#8A2BE2" style="background:#8A2BE2;width:28px;height:28px;border-radius:50%;border:none;cursor:pointer;" onclick="setRegisterColor('#8A2BE2', this); event.preventDefault();"></button>
+                                        <button class="accent-btn" data-color="#9933CC" style="background:#9933CC;width:28px;height:28px;border-radius:50%;border:none;cursor:pointer;" onclick="setRegisterColor('#9933CC', this); event.preventDefault();"></button>
+                                        <button class="accent-btn" data-color="#007AFF" style="background:#007AFF;width:28px;height:28px;border-radius:50%;border:none;cursor:pointer;" onclick="setRegisterColor('#007AFF', this); event.preventDefault();"></button>
+                                        <button class="accent-btn" data-color="#34C759" style="background:#34C759;width:28px;height:28px;border-radius:50%;border:none;cursor:pointer;" onclick="setRegisterColor('#34C759', this); event.preventDefault();"></button>
+                                        <button class="accent-btn" data-color="#FF9500" style="background:#FF9500;width:28px;height:28px;border-radius:50%;border:none;cursor:pointer;" onclick="setRegisterColor('#FF9500', this); event.preventDefault();"></button>
+                                        <button class="accent-btn" data-color="#FF3B30" style="background:#FF3B30;width:28px;height:28px;border-radius:50%;border:none;cursor:pointer;" onclick="setRegisterColor('#FF3B30', this); event.preventDefault();"></button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <button id="auth-submit-btn" onclick="handleAuthSubmit()" style="width:100%;padding:12px;border-radius:12px;border:none;background:var(--primary);color:white;font-size:14px;font-weight:600;cursor:pointer;">Anmelden</button>
                         </div>
                         <div id="auth-logged-in" style="display:none;">
                             <div style="display:flex;align-items:center;gap:10px;padding:10px 0;">
-                                <div style="width:40px;height:40px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;color:white;font-size:18px;font-weight:700;flex-shrink:0;" id="auth-avatar"></div>
+                                <div style="width:40px;height:40px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;color:white;font-size:18px;font-weight:700;" id="auth-avatar"></div>
                                 <div style="flex:1;min-width:0;">
                                     <div style="font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" id="auth-user-email"></div>
                                     <div style="font-size:11px;color:var(--gray);" id="auth-user-id"></div>
@@ -1436,20 +1591,19 @@
                 <div class="card">
                     <div class="settings-section">
                         <h3>Profil</h3>
-                        <input type="text" id="settings-name" maxlength="30" placeholder="Dein Name" style="width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--nav-border);background:var(--card-bg);color:var(--text);font-size:15px;box-sizing:border-box;" oninput="saveUserName()">
-                        <div style="margin-top:12px;">
-                            <h3 style="font-size:14px;font-weight:600;color:var(--gray);text-transform:uppercase;letter-spacing:0.5px;margin:0 0 10px 0;">Profilfarbe</h3>
-                            <div style="display:flex;gap:10px;flex-wrap:wrap;" id="profile-color-picker">
-                                <button class="accent-btn profile-color-btn" data-color="#8A2BE2" style="background:#8A2BE2;" onclick="setProfileColor('#8A2BE2')"></button>
-                                <button class="accent-btn profile-color-btn" data-color="#9933CC" style="background:#9933CC;" onclick="setProfileColor('#9933CC')"></button>
-                                <button class="accent-btn profile-color-btn" data-color="#007AFF" style="background:#007AFF;" onclick="setProfileColor('#007AFF')"></button>
-                                <button class="accent-btn profile-color-btn" data-color="#34C759" style="background:#34C759;" onclick="setProfileColor('#34C759')"></button>
-                                <button class="accent-btn profile-color-btn" data-color="#FF9500" style="background:#FF9500;" onclick="setProfileColor('#FF9500')"></button>
-                                <button class="accent-btn profile-color-btn" data-color="#FF3B30" style="background:#FF3B30;" onclick="setProfileColor('#FF3B30')"></button>
-                                <button class="accent-btn profile-color-btn" data-color="#FF2D55" style="background:#FF2D55;" onclick="setProfileColor('#FF2D55')"></button>
-                                <button class="accent-btn profile-color-btn" data-color="#AF52DE" style="background:#AF52DE;" onclick="setProfileColor('#AF52DE')"></button>
-                                <button class="accent-btn profile-color-btn" data-color="#5856D6" style="background:#5856D6;" onclick="setProfileColor('#5856D6')"></button>
-                                <button class="accent-btn profile-color-btn" data-color="#00C7BE" style="background:#00C7BE;" onclick="setProfileColor('#00C7BE')"></button>
+                        <div style="margin-bottom:12px;">
+                            <label style="font-size:13px;color:var(--gray);display:block;margin-bottom:6px;">Name</label>
+                            <input type="text" id="settings-name" placeholder="Dein Name" style="width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--nav-border);background:var(--card-bg);color:var(--text);font-size:15px;box-sizing:border-box;" oninput="handleProfileUpdate()">
+                        </div>
+                        <div>
+                            <label style="font-size:13px;color:var(--gray);display:block;margin-bottom:6px;">Profilfarbe</label>
+                            <div id="settings-color-picker" style="display:flex;gap:10px;flex-wrap:wrap;">
+                                <button class="accent-btn" data-color="#8A2BE2" style="background:#8A2BE2;width:28px;height:28px;border-radius:50%;border:none;cursor:pointer;" onclick="setProfileColor('#8A2BE2'); event.preventDefault();"></button>
+                                <button class="accent-btn" data-color="#9933CC" style="background:#9933CC;width:28px;height:28px;border-radius:50%;border:none;cursor:pointer;" onclick="setProfileColor('#9933CC'); event.preventDefault();"></button>
+                                <button class="accent-btn" data-color="#007AFF" style="background:#007AFF;width:28px;height:28px;border-radius:50%;border:none;cursor:pointer;" onclick="setProfileColor('#007AFF'); event.preventDefault();"></button>
+                                <button class="accent-btn" data-color="#34C759" style="background:#34C759;width:28px;height:28px;border-radius:50%;border:none;cursor:pointer;" onclick="setProfileColor('#34C759'); event.preventDefault();"></button>
+                                <button class="accent-btn" data-color="#FF9500" style="background:#FF9500;width:28px;height:28px;border-radius:50%;border:none;cursor:pointer;" onclick="setProfileColor('#FF9500'); event.preventDefault();"></button>
+                                <button class="accent-btn" data-color="#FF3B30" style="background:#FF3B30;width:28px;height:28px;border-radius:50%;border:none;cursor:pointer;" onclick="setProfileColor('#FF3B30'); event.preventDefault();"></button>
                             </div>
                         </div>
                     </div>
@@ -1478,7 +1632,6 @@
                         <h3>Daten</h3>
                         <button onclick="syncFromFirebase()" style="width:100%;padding:12px;border-radius:12px;border:2px solid var(--primary);background:var(--primary-dim);color:var(--primary);font-size:14px;font-weight:600;cursor:pointer;margin-bottom:8px;">🔄 Sync – Von Firebase neu laden</button>
                         <button class="danger-btn" onclick="clearAllData()">🗑️ Alle lokalen Daten löschen</button>
-                        <button onclick="resetNews()" style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--glass-tint);background:var(--card-bg);color:var(--text);font-size:13px;font-weight:600;cursor:pointer;margin-top:8px;">📰 News zurücksetzen</button>
                     </div>
 
                     <!-- Admin Panel (nur für marten@ik.me) -->
@@ -1625,37 +1778,14 @@
                 serverTimestamp,
                 addDoc
             } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
-            // === LOADING BAR ===
-            let _appReadyCount = 0;
-            function _appReady() {
-                _appReadyCount++;
-                if (_appReadyCount >= 2) {
-                    const bar = document.getElementById('app-loading-bar');
-                    if (bar) {
-                        bar.classList.remove('active');
-                        bar.classList.add('done');
-                    }
+            // === NEWS SYSTEM ===
+            async function showNewsPopups(trigger) {
+                try {
+                    const mod = await import('./news.js?v=' + Date.now());
+                    mod.showNewsPopups(trigger);
+                } catch (e) {
+                    console.warn('News konnten nicht geladen werden:', e);
                 }
-            }
-
-            // === NEWS ===
-            // news.js wird bei JEDEM App-Start frisch geladen (Cache-Bust per Query-Parameter +
-            // "no-store" im Service Worker), damit neue Einträge sofort sichtbar sind.
-            // Der Anzeige-Status wird als Cookie gespeichert (siehe news.js), nicht mehr in localStorage.
-            // Geladen per <script>-Tag (nicht dynamic import), damit es auch über file:// funktioniert.
-            function loadNews(callback) {
-                const s = document.createElement('script');
-                s.src = './news.js?v=' + Date.now();
-                s.onload = () => { if (callback) callback(); };
-                s.onerror = () => { console.warn('News konnten nicht geladen werden'); };
-                document.head.appendChild(s);
-            }
-            function showNewsPopups(trigger) {
-                loadNews(() => {
-                    if (window.__news && window.__news.showNewsPopups) {
-                        window.__news.showNewsPopups(trigger);
-                    }
-                });
             }
 
             // === CUSTOM DIALOGS (ersetzt alert/confirm/prompt) ===
@@ -1675,7 +1805,6 @@
                     html += '<button class="dlg-btn ' + (opts.danger ? 'dlg-btn-danger' : 'dlg-btn-primary') + '" data-action="ok">' + (opts.okText || 'OK') + '</button>';
                     html += '</div></div>';
                     ov.innerHTML = html;
-                    if (opts.render) opts.render(ov.querySelector('.dlg-box'));
                     const close = (val) => { ov.classList.add('hiding'); setTimeout(() => { ov.remove(); resolve(val); }, 250); };
                     ov.querySelector('[data-action="ok"]').onclick = () => {
                         const inputEl = ov.querySelector('.dlg-input');
@@ -1726,49 +1855,6 @@
             // === AUTH STATE ===
             let currentUser = null;
             let isAnonymous = true;
-            let banListenerUnsub = null;
-
-            // Übersetzt Firebase-Auth-Fehlercodes in verständliche deutsche Meldungen
-            function authErrorMessage(e) {
-                const code = e && e.code ? e.code : '';
-                const map = {
-                    'auth/invalid-email': 'Die E-Mail-Adresse ist ungültig.',
-                    'auth/missing-email': 'Bitte gib eine E-Mail-Adresse ein.',
-                    'auth/user-not-found': 'Es existiert kein Konto mit dieser E-Mail-Adresse.',
-                    'auth/wrong-password': 'Das Passwort ist falsch.',
-                    'auth/invalid-credential': 'E-Mail oder Passwort ist falsch.',
-                    'auth/invalid-login-credentials': 'E-Mail oder Passwort ist falsch.',
-                    'auth/too-many-requests': 'Zu viele Versuche. Bitte warte einen Moment und versuche es erneut.',
-                    'auth/user-disabled': 'Dieses Konto wurde deaktiviert.',
-                    'auth/email-already-in-use': 'Für diese E-Mail-Adresse existiert bereits ein Konto. Möchtest du dich stattdessen anmelden?',
-                    'auth/weak-password': 'Das Passwort ist zu schwach – mindestens 6 Zeichen erforderlich.',
-                    'auth/network-request-failed': 'Keine Verbindung zum Server. Prüfe deine Internetverbindung.',
-                    'auth/operation-not-allowed': 'Anmeldung per E-Mail/Passwort ist momentan nicht aktiviert.',
-                };
-                return map[code] || (e && e.message ? e.message.replace(/^Firebase:\s*/, '') : 'Unbekannter Fehler.');
-            }
-
-            function showAuthError(msg) {
-                const el = document.getElementById('auth-error');
-                if (!el) return;
-                if (!msg) { el.style.display = 'none'; el.textContent = ''; return; }
-                el.textContent = msg;
-                el.style.display = 'block';
-            }
-
-            function setAuthButtonsBusy(busy) {
-                const loginBtn = document.getElementById('auth-login-btn');
-                const regBtn = document.getElementById('auth-register-btn');
-                [loginBtn, regBtn].forEach(b => { if (b) { b.disabled = busy; b.style.opacity = busy ? '0.5' : '1'; } });
-            }
-
-            // Grundlegende Eingabeprüfung vor dem Firebase-Aufruf, damit Nutzer sofort Feedback bekommen
-            function validateAuthInput(email, pw) {
-                if (!email || !pw) return 'Bitte E-Mail und Passwort eingeben.';
-                if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return 'Bitte eine gültige E-Mail-Adresse eingeben.';
-                if (pw.length < 6) return 'Das Passwort muss mindestens 6 Zeichen lang sein.';
-                return null;
-            }
 
             function updateAuthUI(user) {
                 const loggedOut = document.getElementById('auth-logged-out');
@@ -1779,44 +1865,276 @@
                     loggedIn.style.display = 'block';
                     document.getElementById('auth-user-email').textContent = user.email || 'Unbekannt';
                     document.getElementById('auth-user-id').textContent = 'UID: ' + (user.uid || '').slice(0, 16) + '...';
-                    const avatar = document.getElementById('auth-avatar');
-                    const initial = (userName || user.email || '?')[0].toUpperCase();
-                    avatar.textContent = initial;
-                    avatar.style.background = profileColor;
+                    document.getElementById('auth-avatar').textContent = (user.email || '?')[0].toUpperCase();
                 } else {
                     loggedOut.style.display = 'block';
                     loggedIn.style.display = 'none';
-                    showAuthError(null);
                 }
             }
 
-            onAuthStateChanged(auth, (user) => {
+            // === AUTH STATE & PROFILE MANAGEMENT ===
+            let authMode = 'login';
+            let selectedRegisterColor = '#8A2BE2';
+            let profileColor = '#8A2BE2';
+            let currentUserRole = 'user';
+            let userProfilesCache = {};
+
+            window.setAuthMode = (mode) => {
+                authMode = mode;
+                const loginTab = document.getElementById('auth-tab-login');
+                const registerTab = document.getElementById('auth-tab-register');
+                const registerFields = document.getElementById('auth-register-fields');
+                const submitBtn = document.getElementById('auth-submit-btn');
+                const errorMsg = document.getElementById('auth-error-msg');
+                
+                if (errorMsg) errorMsg.style.display = 'none';
+                
+                if (mode === 'register') {
+                    loginTab.style.fontWeight = 'normal';
+                    loginTab.style.opacity = '0.6';
+                    registerTab.style.fontWeight = 'bold';
+                    registerTab.style.opacity = '1';
+                    registerFields.style.display = 'block';
+                    submitBtn.textContent = 'Registrieren';
+                } else {
+                    loginTab.style.fontWeight = 'bold';
+                    loginTab.style.opacity = '1';
+                    registerTab.style.fontWeight = 'normal';
+                    registerTab.style.opacity = '0.6';
+                    registerFields.style.display = 'none';
+                    submitBtn.textContent = 'Anmelden';
+                }
+            };
+
+            window.setRegisterColor = (color, btn) => {
+                selectedRegisterColor = color;
+                document.querySelectorAll('#auth-color-picker .accent-btn').forEach(b => {
+                    b.classList.toggle('active', b === btn);
+                });
+            };
+
+            window.setProfileColor = async (color) => {
+                profileColor = color;
+                document.querySelectorAll('#settings-color-picker .accent-btn').forEach(b => {
+                    b.classList.toggle('active', b.dataset.color === color);
+                });
+                const name = document.getElementById('settings-name')?.value.trim() || '';
+                await saveUserProfile(name, color);
+            };
+
+            window.handleProfileUpdate = async () => {
+                const name = document.getElementById('settings-name')?.value.trim() || '';
+                await saveUserProfile(name, profileColor);
+            };
+
+            async function saveUserProfile(name, color) {
+                userName = name;
+                localStorage.setItem('cook-now-user-name', name);
+                localStorage.setItem('cook-now-accent', color);
+                setAccentColor(color, false);
+                updateGreeting();
+                
+                if (currentUser && !currentUser.isAnonymous) {
+                    try {
+                        await setDoc(doc(db, "users", currentUser.email), {
+                            name: name,
+                            color: color
+                        }, { merge: true });
+                    } catch(e) {
+                        console.warn("Konnte Profil nicht in Firestore speichern:", e);
+                    }
+                }
+            }
+
+            window.handleAuthSubmit = async () => {
+                const email = document.getElementById('auth-email').value.trim();
+                const pw = document.getElementById('auth-password').value;
+                const errorMsg = document.getElementById('auth-error-msg');
+                
+                if (errorMsg) errorMsg.style.display = 'none';
+                
+                // Client-side validations
+                if (!email) {
+                    await dlgAlert('Bitte eine E-Mail-Adresse eingeben.', 'Validierungsfehler', '⚠️');
+                    return;
+                }
+                const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailPattern.test(email)) {
+                    await dlgAlert('Bitte eine gültige E-Mail-Adresse eingeben.', 'Validierungsfehler', '⚠️');
+                    return;
+                }
+                if (!pw) {
+                    await dlgAlert('Bitte ein Passwort eingeben.', 'Validierungsfehler', '⚠️');
+                    return;
+                }
+                if (pw.length < 6) {
+                    await dlgAlert('Das Passwort muss mindestens 6 Zeichen lang sein.', 'Validierungsfehler', '⚠️');
+                    return;
+                }
+                
+                if (authMode === 'register') {
+                    const name = document.getElementById('auth-name').value.trim();
+                    if (!name) {
+                        await dlgAlert('Bitte einen Profilnamen eingeben.', 'Validierungsfehler', '⚠️');
+                        return;
+                    }
+                    
+                    try {
+                        // Check if email is already banned
+                        const banned = await checkIfBanned(email);
+                        if (banned) {
+                            await dlgAlert('Registrierung nicht möglich: Diese E-Mail-Adresse wurde gesperrt.', 'Konto gesperrt', '🚫');
+                            return;
+                        }
+                        
+                        const cred = await createUserWithEmailAndPassword(auth, email, pw);
+                        
+                        // Save user profile to Firestore
+                        await setDoc(doc(db, "users", email), {
+                            name: name,
+                            color: selectedRegisterColor
+                        });
+                        
+                        localStorage.setItem('cook-now-user-name', name);
+                        localStorage.setItem('cook-now-accent', selectedRegisterColor);
+                        setAccentColor(selectedRegisterColor, false);
+                        
+                        await dlgAlert('Registrierung erfolgreich!', 'Willkommen', '🎉');
+                    } catch(e) {
+                        await dlgAlert('Registrierung fehlgeschlagen: ' + e.message, 'Fehler', '❌');
+                    }
+                } else {
+                    // Login mode
+                    try {
+                        await signInWithEmailAndPassword(auth, email, pw);
+                    } catch(e) {
+                        await dlgAlert('Anmeldung fehlgeschlagen: ' + e.message, 'Fehler', '❌');
+                    }
+                }
+            };
+
+            function showBannedOverlay(reason) {
+                let ov = document.getElementById('banned-overlay');
+                if (!ov) {
+                    ov = document.createElement('div');
+                    ov.id = 'banned-overlay';
+                    ov.className = 'dlg-overlay show';
+                    ov.style.zIndex = '99999';
+                    ov.style.backdropFilter = 'blur(15px)';
+                    ov.style.background = 'rgba(0,0,0,0.85)';
+                    ov.innerHTML = `
+                        <div class="dlg-box" style="text-align: center; padding: 30px; border-radius: 20px;">
+                            <div style="font-size: 50px; margin-bottom: 15px;">🚫</div>
+                            <div style="font-size: 22px; font-weight: bold; margin-bottom: 10px; color: var(--text);">Du bist gebannt</div>
+                            <div style="font-size: 15px; margin-bottom: 15px; color: var(--danger);">Dein Konto wurde gesperrt.</div>
+                            <div style="font-size: 13px; opacity: 0.8; color: var(--text); background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px;">Grund: ${reason || 'Admin-Ban'}</div>
+                        </div>
+                    `;
+                    ov.onclick = (e) => { e.stopPropagation(); };
+                    document.body.appendChild(ov);
+                }
+            }
+
+            async function loadUserProfiles() {
+                try {
+                    const snap = await getDocs(collection(db, "users"));
+                    snap.forEach(d => {
+                        userProfilesCache[d.id] = d.data();
+                    });
+                } catch(e) {
+                    console.warn("Laden der User-Profile fehlgeschlagen:", e);
+                }
+            }
+
+            onAuthStateChanged(auth, async (user) => {
                 currentUser = user;
                 isAnonymous = user ? user.isAnonymous : true;
                 updateAuthUI(user);
                 updateAdminUI();
-                if (banListenerUnsub) { banListenerUnsub(); banListenerUnsub = null; }
+                
                 if (user && !user.isAnonymous) {
-                    // Ban-Check beim Login
-                    checkIfBanned(user.email).then(banned => {
-                        if (banned) {
-                            handleBanned(banned);
-                            return;
+                    // 1. Ban checking
+                    const banned = await checkIfBanned(user.email);
+                    if (banned) {
+                        showBannedOverlay(banned.reason || 'Admin-Ban');
+                        await signOut(auth);
+                        return;
+                    }
+                    
+                    // Remove banned overlay if it exists and user is clean
+                    const ov = document.getElementById('banned-overlay');
+                    if (ov) ov.remove();
+                    
+                    // 2. Load User Role
+                    try {
+                        const rSnap = await getDoc(doc(db, "userRoles", user.email));
+                        if (rSnap.exists()) {
+                            currentUserRole = rSnap.data().role || 'user';
+                        } else {
+                            currentUserRole = 'user';
                         }
-                        // Live-Überwachung: sofortiges Abmelden, falls ein Admin den Account
-                        // während der laufenden Sitzung sperrt.
-                        banListenerUnsub = onSnapshot(doc(db, "banned", user.email), (snap) => {
-                            if (snap.exists()) handleBanned(snap.data());
+                    } catch(e) {
+                        currentUserRole = 'user';
+                    }
+                    
+                    // 3. Load user profile name and color from Firestore
+                    try {
+                        const userDoc = await getDoc(doc(db, "users", user.email));
+                        if (userDoc.exists()) {
+                            const data = userDoc.data();
+                            userName = data.name || '';
+                            if (data.color) {
+                                setAccentColor(data.color, true);
+                                profileColor = data.color;
+                            }
+                        } else {
+                            // Profile doesn't exist in Firestore, create it from local state
+                            userName = localStorage.getItem('cook-now-user-name') || '';
+                            profileColor = localStorage.getItem('cook-now-accent') || '#8A2BE2';
+                            await setDoc(doc(db, "users", user.email), {
+                                name: userName,
+                                color: profileColor
+                            });
+                        }
+                        
+                        // Set the input field in settings
+                        const nameEl = document.getElementById('settings-name');
+                        if (nameEl) nameEl.value = userName;
+                        
+                        // Update active color buttons in settings color picker
+                        document.querySelectorAll('#settings-color-picker .accent-btn').forEach(b => {
+                            b.classList.toggle('active', b.dataset.color === profileColor);
                         });
-                        loadUserProfile(user);
-                        const onboarded = localStorage.getItem('cook-now-onboarded-' + user.uid);
-                        if (!onboarded) {
-                            localStorage.setItem('cook-now-onboarded-' + user.uid, 'true');
-                            setTimeout(() => { showOnboardingPopup(user.email); }, 1500);
-                        }
+                        
+                    } catch(e) {
+                        console.warn("Profil laden fehlgeschlagen:", e);
+                    }
+                    
+                    updateGreeting();
+                    
+                    // Onboarding-Check
+                    const onboarded = localStorage.getItem('cook-now-onboarded-' + user.uid);
+                    if (!onboarded) {
+                        localStorage.setItem('cook-now-onboarded-' + user.uid, 'true');
+                        setTimeout(() => { showOnboardingPopup(user.email); }, 1500);
+                    }
+                } else {
+                    // Logged out
+                    userName = '';
+                    profileColor = '#8A2BE2';
+                    currentUserRole = 'user';
+                    localStorage.removeItem('cook-now-user-name');
+                    
+                    // Reset input in settings
+                    const nameEl = document.getElementById('settings-name');
+                    if (nameEl) nameEl.value = '';
+                    // Reset active color buttons in settings color picker
+                    document.querySelectorAll('#settings-color-picker .accent-btn').forEach(b => {
+                        b.classList.remove('active');
                     });
+                    
+                    updateGreeting();
                 }
-                _appReady();
             });
 
             async function checkIfBanned(email) {
@@ -1827,172 +2145,15 @@
                 } catch(e) { return false; }
             }
 
-            // Zeigt ein klares, nicht schließbares Gebannt-Popup und meldet den Nutzer ab.
-            // Es gibt keinen OK-Button und kein Wegklicken – der Nutzer sieht nur die Meldung.
-            function handleBanned(banned) {
-                if (window.__banPopupShown) return;
-                window.__banPopupShown = true;
-                signOut(auth).catch(() => {});
-                if (document.getElementById('banned-overlay')) return;
-                const ov = document.createElement('div');
-                ov.id = 'banned-overlay';
-                ov.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);display:flex;align-items:center;justify-content:center;padding:24px;';
-                ov.onclick = (e) => { e.stopPropagation(); };
-                ov.innerHTML = '<div style="background:var(--card);border-radius:20px;padding:32px 24px;max-width:300px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.5);">' +
-                    '<div style="font-size:48px;margin-bottom:16px;">🚫</div>' +
-                    '<div style="font-size:20px;font-weight:700;color:var(--text);margin-bottom:8px;">Du bist gebannt</div>' +
-                    '<div style="font-size:14px;color:var(--danger);margin-bottom:12px;">Dein Konto wurde gesperrt.</div>' +
-                    '<div style="font-size:13px;color:var(--gray);padding:10px;border-radius:8px;background:rgba(255,255,255,0.05);">' +
-                    'Grund: ' + (banned.reason || 'Verstoß gegen die Nutzungsregeln') + '</div></div>';
-                document.body.appendChild(ov);
-            }
-
-            // Lädt Profilname & -farbe aus Firestore und übernimmt sie lokal (falls vorhanden)
-            async function loadUserProfile(user) {
-                try {
-                    const snap = await getDoc(doc(db, "profiles", user.uid));
-                    if (snap.exists()) {
-                        const data = snap.data();
-                        if (data.name && !userName) {
-                            userName = data.name;
-                            localStorage.setItem('cook-now-user-name', userName);
-                            const nameEl = document.getElementById('settings-name');
-                            if (nameEl) nameEl.value = userName;
-                            updateGreeting();
-                        }
-                        if (data.color) {
-                            profileColor = data.color;
-                            localStorage.setItem('cook-now-profile-color', data.color);
-                            document.querySelectorAll('.profile-color-btn').forEach(b => {
-                                b.classList.toggle('active', b.dataset.color === data.color);
-                            });
-                        }
-                    }
-                    // Apply stored color even if no Firestore profile
-                    document.querySelectorAll('.profile-color-btn').forEach(b => {
-                        b.classList.toggle('active', b.dataset.color === profileColor);
-                    });
-                    updateAuthUI(user);
-                } catch (e) { /* offline oder keine Berechtigung – ignorieren */ }
-            }
-
-            async function saveUserProfileToCloud() {
-                if (!currentUser || currentUser.isAnonymous) return;
-                try {
-                    await setDoc(doc(db, "profiles", currentUser.uid), {
-                        name: userName || '',
-                        color: profileColor,
-                        email: currentUser.email,
-                        updatedAt: serverTimestamp(),
-                    }, { merge: true });
-                } catch (e) { /* offline – wird beim nächsten Sync nachgeholt */ }
-            }
-
-            window.firebaseLogin = async () => {
-                showAuthError(null);
-                const email = document.getElementById('auth-email').value.trim().toLowerCase();
-                const pw = document.getElementById('auth-password').value;
-                const validationError = validateAuthInput(email, pw);
-                if (validationError) { showAuthError(validationError); return; }
-                setAuthButtonsBusy(true);
-                try {
-                    await signInWithEmailAndPassword(auth, email, pw);
-                    document.getElementById('auth-password').value = '';
-                } catch (e) {
-                    showAuthError(authErrorMessage(e));
-                } finally {
-                    setAuthButtonsBusy(false);
-                }
-            };
-
-            window.firebaseRegister = async () => {
-                showAuthError(null);
-                const email = document.getElementById('auth-email').value.trim().toLowerCase();
-                const pw = document.getElementById('auth-password').value;
-                const validationError = validateAuthInput(email, pw);
-                if (validationError) { showAuthError(validationError); return; }
-                setAuthButtonsBusy(true);
-                try {
-                    const banned = await checkIfBanned(email);
-                    if (banned) {
-                        showAuthError('Diese E-Mail-Adresse ist gesperrt und kann kein neues Konto erstellen.');
-                        return;
-                    }
-                    const cred = await createUserWithEmailAndPassword(auth, email, pw);
-                    document.getElementById('auth-password').value = '';
-                    // Direkt nach Registrierung: Profilname und -farbe abfragen
-                    const name = await dlgPrompt('Wie sollen wir dich nennen?', 'Profilname wählen', 'z. B. Marten', userName);
-                    if (name) {
-                        userName = name.trim();
-                        localStorage.setItem('cook-now-user-name', userName);
-                        const nameEl = document.getElementById('settings-name');
-                        if (nameEl) nameEl.value = userName;
-                        updateGreeting();
-                    }
-                    // Profilfarbe auswählen
-                    const color = await dlgShow({
-                        title: 'Profilfarbe wählen',
-                        msg: 'Wähle deine persönliche Farbe:',
-                        icon: '🎨',
-                        cancel: false,
-                        okText: 'OK',
-                        render: (box) => {
-                            const colors = ['#8A2BE2','#9933CC','#007AFF','#34C759','#FF9500','#FF3B30','#FF2D55','#AF52DE','#5856D6','#00C7BE'];
-                            const container = document.createElement('div');
-                            container.style.cssText = 'display:flex;gap:10px;flex-wrap:wrap;justify-content:center;padding:8px 16px 16px;';
-                            colors.forEach(c => {
-                                const btn = document.createElement('button');
-                                btn.style.cssText = 'width:36px;height:36px;border-radius:50%;border:3px solid transparent;cursor:pointer;background:' + c + ';transition:all 0.15s;';
-                                btn.dataset.color = c;
-                                btn.onclick = () => {
-                                    container.querySelectorAll('button').forEach(b => {
-                                        b.style.borderColor = b === btn ? 'var(--text)' : 'transparent';
-                                        b.style.transform = b === btn ? 'scale(1.15)' : 'scale(1)';
-                                    });
-                                    selectedRegisterColor = c;
-                                };
-                                container.appendChild(btn);
-                            });
-                            // erste Farbe vorwählen
-                            const first = container.querySelector('button');
-                            if (first) { first.style.borderColor = 'var(--text)'; first.style.transform = 'scale(1.15)'; }
-                            box.querySelector('.dlg-msg').after(container);
-                        }
-                    });
-                    profileColor = selectedRegisterColor;
-                    localStorage.setItem('cook-now-profile-color', profileColor);
-                    document.querySelectorAll('.profile-color-btn').forEach(b => {
-                        b.classList.toggle('active', b.dataset.color === profileColor);
-                    });
-                    {
-                        const avatar = document.getElementById('auth-avatar');
-                        if (avatar) avatar.style.background = profileColor;
-                    }
-                    await saveUserProfileToCloud();
-                } catch (e) {
-                    showAuthError(authErrorMessage(e));
-                } finally {
-                    setAuthButtonsBusy(false);
-                }
-            };
-
             window.firebaseLogout = async () => {
                 const ok = await dlgConfirm('Möchtest du dich abmelden?', 'Abmelden', '🚪');
                 if (!ok) return;
                 try {
                     await signOut(auth);
                 } catch (e) {
-                    await dlgAlert('Abmeldung fehlgeschlagen: ' + authErrorMessage(e), 'Fehler', '❌');
+                    await dlgAlert('Abmeldung fehlgeschlagen: ' + e.message, 'Fehler', '❌');
                 }
             };
-
-            // Enter-Taste in den Login-Feldern löst die Anmeldung aus
-            document.addEventListener('DOMContentLoaded', () => {
-                ['auth-email', 'auth-password'].forEach(id => {
-                    const el = document.getElementById(id);
-                    if (el) el.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); window.firebaseLogin(); } });
-                });
-            });
 
             // === AUDIT LOGGING ===
             async function auditLog(action, dateKey, data) {
@@ -2035,7 +2196,7 @@
                 const ok = await dlgConfirm('Alle lokalen Daten löschen und von Firebase neu laden?<br><br><small>Deine lokalen Einstellungen (Design, Name) bleiben erhalten.</small>', 'Sync starten', '🔄');
                 if (!ok) return;
                 try {
-                    const mealKeys = Object.keys(localStorage).filter(k => k.startsWith('cook-now-') && !['cook-now-theme', 'cook-now-user-name', 'cook-now-accent', 'cook-now-profile-color', 'cook-now-dismissed'].includes(k) && !k.startsWith('cook-now-onboarded-'));
+                    const mealKeys = Object.keys(localStorage).filter(k => k.startsWith('cook-now-') && !['cook-now-theme', 'cook-now-user-name', 'cook-now-dismissed', 'cook-news-dismissed-v1'].includes(k));
                     mealKeys.forEach(k => localStorage.removeItem(k));
                     await loadAllMealDates();
                     if (currentTab === 'home') {
@@ -2061,13 +2222,14 @@
             const ADMIN_EMAIL = 'marten@ik.me';
 
             function isAdmin() {
-                return currentUser && currentUser.email === ADMIN_EMAIL;
+                return (currentUser && currentUser.email === ADMIN_EMAIL) || currentUserRole === 'admin';
             }
 
             async function loadRecentAudit() {
                 const container = document.getElementById('audit-list');
                 if (!container) return;
                 try {
+                    await loadUserProfiles();
                     const q = query(collection(db, "audit"), orderBy("timestamp", "desc"));
                     const snap = await getDocs(q);
                     const entries = [];
@@ -2109,7 +2271,12 @@
                 const dateStr = e.dateKey || '—';
                 const ts = e.timestamp?.toDate ? e.timestamp.toDate() : null;
                 const timeStr = ts ? ts.toLocaleString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '';
-                const avatar = (email || '?')[0].toUpperCase();
+                
+                // Load from cache
+                const profile = userProfilesCache[email] || {};
+                const displayName = profile.name || email.split('@')[0];
+                const displayColor = profile.color || 'var(--primary)';
+                const avatar = displayName[0].toUpperCase();
 
                 let diffHtml = '';
                 if (e.data && e.prevData) {
@@ -2132,10 +2299,10 @@
                 }
 
                 return '<div class="anstehend-item" onclick="openAuditMeal(\'' + e.dateKey + '\')" style="cursor:pointer;">' +
-                    '<div style="width:36px;height:36px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;color:white;font-size:14px;font-weight:700;flex-shrink:0;">' + avatar + '</div>' +
+                    '<div style="width:36px;height:36px;border-radius:50%;background:' + displayColor + ';display:flex;align-items:center;justify-content:center;color:white;font-size:14px;font-weight:700;flex-shrink:0;">' + avatar + '</div>' +
                     '<div class="anstehend-info">' +
                         '<div class="meal-name">' + label + (e.data?.dish ? ' — <strong>' + e.data.dish + '</strong>' : '') + '</div>' +
-                        '<div class="meal-meta">' + email + ' · ' + dateStr + (timeStr ? ' · ' + timeStr : '') + '</div>' +
+                        '<div class="meal-meta">' + displayName + ' (' + email + ') · ' + dateStr + (timeStr ? ' · ' + timeStr : '') + '</div>' +
                         diffHtml + adminBtn +
                     '</div>' +
                     '<span style="font-size:12px;color:var(--gray);">›</span>' +
@@ -2154,6 +2321,7 @@
                 if (!container) return;
                 container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--gray);">Laden...</div>';
                 try {
+                    await loadUserProfiles();
                     const q = query(collection(db, "audit"), orderBy("timestamp", "desc"));
                     const snap = await getDocs(q);
                     const entries = [];
@@ -2240,6 +2408,9 @@
                 if (!container) return;
                 container.innerHTML = '<div style="text-align:center;padding:12px;color:var(--gray);font-size:13px;">Laden...</div>';
                 try {
+                    // Refresh profiles list first
+                    await loadUserProfiles();
+
                     // Banned Users laden
                     let bannedUsers = {};
                     try {
@@ -2254,50 +2425,83 @@
                         rolesSnap.forEach(d => { userRoles[d.id] = d.data(); });
                     } catch(e) {}
 
-                    // Profile laden (profiles/{uid})
-                    let profilesByEmail = {};
-                    try {
-                        const profilesSnap = await getDocs(collection(db, "profiles"));
-                        profilesSnap.forEach(d => {
-                            const p = d.data();
-                            if (p.email) profilesByEmail[p.email] = p;
-                        });
-                    } catch(e) {}
-
                     const q = query(collection(db, "audit"), orderBy("timestamp", "desc"));
                     const snap = await getDocs(q);
+                    
                     const usersMap = {};
+
+                    // 1. Initialize from loaded user profiles
+                    for (const [email, profile] of Object.entries(userProfilesCache)) {
+                        usersMap[email] = {
+                            email,
+                            uid: '',
+                            actions: 0,
+                            lastActive: null,
+                            name: profile.name,
+                            color: profile.color
+                        };
+                    }
+
+                    // 2. Add roles if not already present
+                    for (const email of Object.keys(userRoles)) {
+                        if (!usersMap[email]) {
+                            usersMap[email] = { email, uid: '', actions: 0, lastActive: null };
+                        }
+                    }
+
+                    // 3. Add banned users if not already present
+                    for (const email of Object.keys(bannedUsers)) {
+                        if (!usersMap[email]) {
+                            usersMap[email] = { email, uid: '', actions: 0, lastActive: null };
+                        }
+                    }
+
+                    // 4. Fill activity info from audit logs
                     snap.forEach(d => {
                         const data = d.data();
                         const email = data.email || 'unbekannt';
                         if (email === 'unbekannt' || email === 'anonym') return;
+                        
                         if (!usersMap[email]) {
                             usersMap[email] = { email, uid: data.userId, actions: 0, lastActive: data.timestamp };
                         }
+                        
                         usersMap[email].actions++;
+                        if (!usersMap[email].lastActive && data.timestamp) {
+                            usersMap[email].lastActive = data.timestamp;
+                        }
+                        if (data.userId && !usersMap[email].uid) {
+                            usersMap[email].uid = data.userId;
+                        }
                     });
+
                     const users = Object.values(usersMap);
                     if (!users.length) {
                         container.innerHTML = '<div style="text-align:center;padding:12px;color:var(--gray);font-size:13px;">Keine Nutzer gefunden.</div>';
                         return;
                     }
+
                     container.innerHTML = users.map(u => {
                         const isAdm = u.email === ADMIN_EMAIL;
                         const isBanned = !!bannedUsers[u.email];
-                        const profile = profilesByEmail[u.email] || {};
-                        const displayName = profile.name || u.email.split('@')[0];
-                        const displayColor = profile.color || (isAdm ? 'var(--danger)' : isBanned ? '#8e8e93' : 'var(--primary)');
                         const role = userRoles[u.email]?.role || 'user';
                         const ts = u.lastActive?.toDate ? u.lastActive.toDate() : null;
                         const lastStr = ts ? ts.toLocaleString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '';
+                        
+                        // Load name and color
+                        const profile = userProfilesCache[u.email] || {};
+                        const displayName = profile.name || u.email.split('@')[0];
+                        const displayColor = profile.color || (isAdm ? 'var(--danger)' : isBanned ? '#8e8e93' : 'var(--primary)');
+                        const avatar = displayName[0].toUpperCase();
 
                         let roleBadge = '';
                         if (isAdm) roleBadge = '<span style="background:var(--danger);color:white;padding:1px 6px;border-radius:6px;font-size:10px;font-weight:600;">Admin</span>';
                         else if (isBanned) roleBadge = '<span style="background:#8e8e93;color:white;padding:1px 6px;border-radius:6px;font-size:10px;font-weight:600;">Gebannt</span>';
                         else if (role === 'mod') roleBadge = '<span style="background:#FF9500;color:white;padding:1px 6px;border-radius:6px;font-size:10px;font-weight:600;">Mod</span>';
+                        else if (role === 'admin') roleBadge = '<span style="background:var(--danger);color:white;padding:1px 6px;border-radius:6px;font-size:10px;font-weight:600;">Admin</span>';
 
                         let buttons = '';
-                        if (!isAdm) {
+                        if (!isAdm && role !== 'admin') {
                             buttons = '<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px;">';
                             if (!isBanned) {
                                 buttons += '<button onclick="adminBanUser(\'' + u.email + '\')" style="background:rgba(255,149,0,0.1);color:#FF9500;border:1px solid rgba(255,149,0,0.3);border-radius:6px;padding:4px 8px;font-size:10px;font-weight:600;cursor:pointer;">🚫 Bannen</button>';
@@ -2306,6 +2510,7 @@
                                 } else {
                                     buttons += '<button onclick="adminSetRole(\'' + u.email + '\',\'user\')" style="background:rgba(142,142,147,0.1);color:var(--gray);border:1px solid rgba(142,142,147,0.3);border-radius:6px;padding:4px 8px;font-size:10px;font-weight:600;cursor:pointer;">👤 User</button>';
                                 }
+                                buttons += '<button onclick="adminSetRole(\'' + u.email + '\',\'admin\')" style="background:rgba(255,59,48,0.1);color:var(--danger);border:1px solid rgba(255,59,48,0.3);border-radius:6px;padding:4px 8px;font-size:10px;font-weight:600;cursor:pointer;">🛡️ Admin</button>';
                             } else {
                                 buttons += '<button onclick="adminUnbanUser(\'' + u.email + '\')" style="background:rgba(52,199,89,0.1);color:#34C759;border:1px solid rgba(52,199,89,0.3);border-radius:6px;padding:4px 8px;font-size:10px;font-weight:600;cursor:pointer;">✅ Entbannen</button>';
                             }
@@ -2313,10 +2518,8 @@
                             buttons += '</div>';
                         }
 
-                        const avatarLetter = (displayName || '?')[0].toUpperCase();
-
                         return '<div class="anstehend-item" style="cursor:default;' + (isBanned ? 'opacity:0.5;' : '') + '">' +
-                            '<div style="width:36px;height:36px;border-radius:50%;background:' + displayColor + ';display:flex;align-items:center;justify-content:center;color:white;font-size:14px;font-weight:700;flex-shrink:0;">' + avatarLetter + '</div>' +
+                            '<div style="width:36px;height:36px;border-radius:50%;background:' + displayColor + ';display:flex;align-items:center;justify-content:center;color:white;font-size:14px;font-weight:700;flex-shrink:0;">' + avatar + '</div>' +
                             '<div class="anstehend-info">' +
                                 '<div class="meal-name">' + displayName + ' <span style="font-size:11px;font-weight:normal;color:var(--gray);">(' + u.email + ')</span> ' + roleBadge + '</div>' +
                                 '<div class="meal-meta">' + u.actions + ' Aktionen' + (lastStr ? ' · Letzte: ' + lastStr : '') + '</div>' +
@@ -2325,6 +2528,7 @@
                             '</div>';
                     }).join('');
                 } catch (e) {
+                    console.error(e);
                     container.innerHTML = '<div style="text-align:center;padding:12px;color:var(--gray);font-size:13px;">Fehler beim Laden.</div>';
                 }
             }
@@ -2491,8 +2695,6 @@
             let allMealDates = new Set();
             let calendarView = 'week';
             let userName = localStorage.getItem('cook-now-user-name') || '';
-            let profileColor = localStorage.getItem('cook-now-profile-color') || '#8A2BE2';
-            let selectedRegisterColor = '#8A2BE2';
             let currentTab = 'home';
 
             const weekdays = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
@@ -3081,14 +3283,6 @@
                 if (savedAccent) setAccentColor(savedAccent, true);
                 const nameEl = document.getElementById('settings-name');
                 if (nameEl) nameEl.value = userName;
-                // Restore profile color
-                const savedProfileColor = localStorage.getItem('cook-now-profile-color');
-                if (savedProfileColor) {
-                    profileColor = savedProfileColor;
-                    document.querySelectorAll('.profile-color-btn').forEach(b => {
-                        b.classList.toggle('active', b.dataset.color === profileColor);
-                    });
-                }
                 updateGreeting();
             }
 
@@ -3107,20 +3301,6 @@
                 userName = val;
                 localStorage.setItem('cook-now-user-name', val);
                 updateGreeting();
-                if (currentUser && !currentUser.isAnonymous) saveUserProfileToCloud();
-            };
-
-            window.setProfileColor = (color, skipSave) => {
-                profileColor = color;
-                if (!skipSave) localStorage.setItem('cook-now-profile-color', color);
-                document.querySelectorAll('.profile-color-btn').forEach(b => {
-                    b.classList.toggle('active', b.dataset.color === color);
-                });
-                const avatar = document.getElementById('auth-avatar');
-                if (avatar) avatar.style.background = color;
-                if (currentUser && !currentUser.isAnonymous && !skipSave) {
-                    saveUserProfileToCloud();
-                }
             };
 
             function updateDateDisplay() {}
@@ -3166,13 +3346,6 @@
                 document.getElementById("light-theme-btn").classList.toggle("active", mode === "light");
                 document.getElementById("dark-theme-btn").classList.toggle("active", mode === "dark");
                 document.getElementById("auto-theme-btn").classList.toggle("active", mode === "auto");
-            };
-
-            window.resetNews = () => {
-                if (window.__news && window.__news.clearNewsDismissed) {
-                    window.__news.clearNewsDismissed();
-                }
-                window.location.reload();
             };
 
             window.clearAllData = async () => {
@@ -3313,7 +3486,6 @@
                         renderSpeiseplaene();
                         updateTodaySection();
                     }
-                    _appReady();
                 });
             });
 

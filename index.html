@@ -14,7 +14,7 @@
         <meta name="application-name" content="cook_now" />
         <meta name="apple-touch-fullscreen" content="yes" />
         <meta name="msapplication-navbutton-color" content="#9933CC" />
-        <link rel="manifest" href="manifest.json" />
+        <script>if (location.protocol !== 'file:') document.write('<link rel="manifest" href="manifest.json" />');</script>
         <link rel="icon" type="image/svg+xml" sizes="any" href="icon.svg" />
         <link rel="apple-touch-icon" sizes="180x180" href="icon.svg" />
         <link rel="apple-touch-icon" sizes="192x192" href="icon.svg" />
@@ -1368,6 +1368,7 @@
                         <div style="font-size:18px;font-weight:700;margin:4px 0 2px;" id="selected-meal-date"></div>
                         <div style="font-size:13px;color:var(--gray);" id="selected-meal-weekday"></div>
                         <div style="font-size:15px;margin-top:8px;font-weight:500;color:var(--text);" id="selected-meal-name"></div>
+                        <div id="selected-meal-detail" style="margin-top:8px;font-size:12px;color:var(--gray);text-align:left;"></div>
                     </div>
                     <div id="calendar-meals-list" style="display:none;"></div>
                     <div id="speiseplaene-links" class="card" style="margin-top:12px;padding:12px 16px;">
@@ -1531,12 +1532,24 @@
                         </div>
                         <div class="edit-row">
                             <span class="edit-label">Mensa</span>
-                            <select id="plan-mensa-type" class="edit-mensa-select">
+                            <select id="plan-mensa-type" class="edit-mensa-select" onchange="toggleSelbstKochen()">
                                 <option value="">Keine</option>
                                 <option value="bruecke">🏛️ Kirche</option>
                                 <option value="fleet">⚓ Fleet</option>
                                 <option value="bread-soda">🥖🥤 Bread &amp; Soda</option>
+                                <option value="selbst">👨‍🍳 Selbst kochen</option>
                             </select>
+                        </div>
+                    </div>
+
+                    <div id="selbst-section" style="display:none;">
+                        <div class="edit-section-label" style="margin-top:16px;">🥕 Zutaten</div>
+                        <div class="edit-card">
+                            <textarea id="plan-zutaten" class="edit-textarea" placeholder="Zutaten eingeben..."></textarea>
+                        </div>
+                        <div class="edit-section-label" style="margin-top:16px;">👨‍🍳 Zubereitung</div>
+                        <div class="edit-card">
+                            <textarea id="plan-zubereitung" class="edit-textarea" placeholder="Zubereitungsschritte..."></textarea>
                         </div>
                     </div>
 
@@ -1612,6 +1625,9 @@
             } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
             import {
                 getFirestore,
+                initializeFirestore,
+                persistentLocalCache,
+                persistentMultipleTabManager,
                 doc,
                 setDoc,
                 getDoc,
@@ -1623,7 +1639,7 @@
                 where,
                 orderBy,
                 limit,
-                enableIndexedDbPersistence,
+                writeBatch,
                 serverTimestamp,
                 addDoc
             } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
@@ -1714,16 +1730,12 @@
             };
 
             const app = initializeApp(firebaseConfig);
-            const db = getFirestore(app);
+            const db = location.protocol === 'file:'
+                ? getFirestore(app)
+                : initializeFirestore(app, {
+                    localCache: persistentLocalCache({tabManager: persistentMultipleTabManager()})
+                  });
             const auth = getAuth(app);
-
-            enableIndexedDbPersistence(db).catch((err) => {
-                if (err.code === 'failed-precondition') {
-                    console.warn('Firestore persistence: multiple tabs open');
-                } else if (err.code === 'unimplemented') {
-                    console.warn('Firestore persistence not supported');
-                }
-            });
 
             // === AUTH STATE ===
             let currentUser = null;
@@ -2006,6 +2018,7 @@
                         userId: currentUser?.uid || 'unknown',
                         email: currentUser?.email || 'unbekannt',
                         isAnonymous,
+                        profileColor: profileColor || '',
                         timestamp: serverTimestamp(),
                         userAgent: navigator.userAgent,
                     });
@@ -2024,6 +2037,7 @@
                         userId: currentUser?.uid || 'unknown',
                         email: currentUser?.email || 'unbekannt',
                         isAnonymous,
+                        profileColor: profileColor || '',
                         timestamp: serverTimestamp(),
                         userAgent: navigator.userAgent,
                     });
@@ -2108,11 +2122,12 @@
                 const ts = e.timestamp?.toDate ? e.timestamp.toDate() : null;
                 const timeStr = ts ? ts.toLocaleString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '';
                 const avatar = (email || '?')[0].toUpperCase();
+                const avatarColor = e.profileColor || 'var(--primary)';
 
                 let diffHtml = '';
                 if (e.data && e.prevData) {
                     const changed = [];
-                    const fields = { dish: 'Gericht', mensaType: 'Mensa', notes: 'Notizen' };
+                    const fields = { dish: 'Gericht', mensaType: 'Mensa', notes: 'Notizen', zutaten: 'Zutaten', zubereitung: 'Zubereitung' };
                     for (const [key, label] of Object.entries(fields)) {
                         if ((e.data[key] || '') !== (e.prevData[key] || '')) {
                             changed.push(label + ': ' + (e.prevData[key] || '—') + ' → ' + (e.data[key] || '—'));
@@ -2130,7 +2145,7 @@
                 }
 
                 return '<div class="anstehend-item" onclick="openAuditMeal(\'' + e.dateKey + '\')" style="cursor:pointer;">' +
-                    '<div style="width:36px;height:36px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;color:white;font-size:14px;font-weight:700;flex-shrink:0;">' + avatar + '</div>' +
+                    '<div style="width:36px;height:36px;border-radius:50%;background:' + avatarColor + ';display:flex;align-items:center;justify-content:center;color:white;font-size:14px;font-weight:700;flex-shrink:0;">' + avatar + '</div>' +
                     '<div class="anstehend-info">' +
                         '<div class="meal-name">' + label + (e.data?.dish ? ' — <strong>' + e.data.dish + '</strong>' : '') + '</div>' +
                         '<div class="meal-meta">' + email + ' · ' + dateStr + (timeStr ? ' · ' + timeStr : '') + '</div>' +
@@ -2235,7 +2250,7 @@
                 }).join('');
             }
 
-            async function adminRefreshUsers() {
+            window.adminRefreshUsers = async function adminRefreshUsers() {
                 const container = document.getElementById('admin-user-list');
                 if (!container) return;
                 container.innerHTML = '<div style="text-align:center;padding:12px;color:var(--gray);font-size:13px;">Laden...</div>';
@@ -2514,17 +2529,23 @@
                 const dateEl = document.getElementById('selected-meal-date');
                 const weekdayEl = document.getElementById('selected-meal-weekday');
                 const nameEl = document.getElementById('selected-meal-name');
+                const detailEl = document.getElementById('selected-meal-detail');
                 if (!container) return;
                 const dateKey = formatDateKey(selectedDate);
                 const data = (window._mealsMap || {})[dateKey];
                 const isTodayFlag = isToday(selectedDate);
                 labelEl.textContent = isTodayFlag ? 'Heute' : 'Ausgewählter Tag';
-                dateEl.textContent = selectedDate.toLocaleDateString('de-DE', { day: '2-digit', month: 'long', year: 'numeric' });
+                dateEl.textContent = selectedDate.toLocaleString('de-DE', { day: '2-digit', month: 'long', year: 'numeric' });
                 weekdayEl.textContent = weekdayNames[selectedDate.getDay()];
                 if (data) {
                     nameEl.innerHTML = '🍽️ ' + formatMealDisplay(data) + (data.notes ? ' 📝' : '');
+                    let detailHtml = '';
+                    if (data.zutaten) detailHtml += '<div style="margin-top:6px;"><strong>🥕 Zutaten:</strong> ' + data.zutaten + '</div>';
+                    if (data.zubereitung) detailHtml += '<div style="margin-top:4px;"><strong>👨‍🍳 Zubereitung:</strong> ' + data.zubereitung + '</div>';
+                    detailEl.innerHTML = detailHtml;
                 } else {
                     nameEl.textContent = '— Keine Mahlzeit geplant —';
+                    detailEl.innerHTML = '';
                 }
             }
 
@@ -2537,6 +2558,7 @@
                     if (t === 'bruecke' || t === 'kirche') mensaLabel = 'Mensa (Kirche)';
                     else if (t === 'fleet') mensaLabel = 'Mensa (Fleet)';
                     else if (t === 'bread-soda') mensaLabel = 'Bread & Soda';
+                    else if (t === 'selbst') mensaLabel = 'Selbst gekocht';
                     else mensaLabel = 'Mensa';
                 }
                 if (dish && mensaLabel) return `${dish} · ${mensaLabel}`;
@@ -2583,7 +2605,10 @@
                     document.getElementById('plan-dish').value = '';
                     document.getElementById('plan-mensa-type').value = '';
                     document.getElementById('plan-notes').value = '';
+                    document.getElementById('plan-zutaten').value = '';
+                    document.getElementById('plan-zubereitung').value = '';
                     document.getElementById('edit-title').textContent = 'Neue Mahlzeit';
+                    toggleSelbstKochen();
                 } else {
                     loadMealForDate();
                     const dish = document.getElementById('plan-dish').value.trim();
@@ -2611,13 +2636,23 @@
                 if (e.key === 'Escape') closeEditView();
             });
 
+            function toggleSelbstKochen() {
+                const sel = document.getElementById('plan-mensa-type').value;
+                const section = document.getElementById('selbst-section');
+                if (section) section.style.display = sel === 'selbst' ? '' : 'none';
+                updateMealCardSummary();
+            }
+            window.toggleSelbstKochen = toggleSelbstKochen;
+
             function updateMealCardSummary() {
                 const el = document.getElementById('meal-card-summary');
                 if (!el) return;
                 const dish = document.getElementById('plan-dish');
                 const mensaType = document.getElementById('plan-mensa-type');
                 const notes = document.getElementById('plan-notes');
-                if (mensaType.value) {
+                if (mensaType.value === 'selbst') {
+                    el.innerHTML = `<span style="color:var(--primary);font-weight:600;">👨‍🍳 Selbst gekocht</span>${notes.value.trim() ? ' <span style="font-size:12px;color:var(--gray);">📝</span>' : ''}`;
+                } else if (mensaType.value) {
                     const t = mensaType.value === 'bruecke' || mensaType.value === 'kirche' ? 'Kirche' : mensaType.value === 'fleet' ? 'Fleet' : mensaType.value === 'bread-soda' ? 'Bread & Soda' : 'Mensa';
                     el.innerHTML = `<span style="color:var(--primary);font-weight:600;">🍽️ Mensa (${t})</span>${notes.value.trim() ? ' <span style="font-size:12px;color:var(--gray);">📝</span>' : ''}`;
                 } else if (dish.value.trim()) {
@@ -2635,32 +2670,33 @@
                 const dish = document.getElementById('plan-dish');
                 const mensaType = document.getElementById('plan-mensa-type');
                 const notes = document.getElementById('plan-notes');
+                const zutaten = document.getElementById('plan-zutaten');
+                const zubereitung = document.getElementById('plan-zubereitung');
 
                 if (data) {
                     dish.value = data.dish || '';
                     mensaType.value = data.mensaType || '';
                     notes.value = data.notes || '';
+                    zutaten.value = data.zutaten || '';
+                    zubereitung.value = data.zubereitung || '';
                 } else {
                     dish.value = '';
                     mensaType.value = '';
                     notes.value = '';
+                    zutaten.value = '';
+                    zubereitung.value = '';
                 }
+                toggleSelbstKochen();
                 updateMealCardSummary();
             }
 
+            let _saving = false;
             window.saveMeal = async () => {
+                if (_saving) return;
+                _saving = true;
+                const btn = document.querySelector('.edit-save-btn');
+                if (btn) { btn.disabled = true; btn.style.opacity = '0.5'; }
                 const prevTab = currentTab;
-                if (!navigator.onLine) {
-                    showStatus(prevTab, 'Verbinde dich mit dem Internet um diese Funktion zu nutzen', 'error');
-                    return;
-                }
-                if (currentUser && !currentUser.isAnonymous) {
-                    const banned = await checkIfBanned(currentUser.email);
-                    if (banned) {
-                        await dlgAlert('Dein Konto ist gesperrt. Du kannst keine Mahlzeiten mehr bearbeiten.', 'Gesperrt', '🚫');
-                        return;
-                    }
-                }
                 const dateVal = document.getElementById('plan-date').value;
                 if (dateVal) {
                     const parts = dateVal.split('-');
@@ -2674,19 +2710,52 @@
                     mensa: !!mensaType,
                     mensaType: mensaType,
                     notes: document.getElementById('plan-notes').value.trim(),
+                    zutaten: mensaType === 'selbst' ? document.getElementById('plan-zutaten').value.trim() : '',
+                    zubereitung: mensaType === 'selbst' ? document.getElementById('plan-zubereitung').value.trim() : '',
                 };
 
-                if (!data.dish && !data.mensa) {
-                    await deleteDoc(doc(db, "meals", dateKey)).catch(() => {});
-                    await auditLog('meal_deleted', dateKey, { ...data });
-                    closeEditView();
-                    showStatus(prevTab, 'Eintrag entfernt.', 'success');
-                } else {
-                    await setDoc(doc(db, "meals", dateKey), data);
-                    await auditLogWithPrev('meal_saved', dateKey, data, prevData);
-                    closeEditView();
-                    showStatus(prevTab, 'Gespeichert für ' + formatDisplayDate(selectedDate), 'success');
+                try {
+                    const batch = writeBatch(db);
+                    if (!data.dish && !data.mensa) {
+                        batch.delete(doc(db, "meals", dateKey));
+                        const auditRef = doc(collection(db, "audit"));
+                        batch.set(auditRef, {
+                            action: 'meal_deleted',
+                            dateKey,
+                            data,
+                            userId: currentUser?.uid || 'unknown',
+                            email: currentUser?.email || 'unbekannt',
+                            isAnonymous,
+                            profileColor: profileColor || '',
+                            timestamp: serverTimestamp(),
+                        });
+                        await batch.commit();
+                        closeEditView();
+                        showStatus(prevTab, 'Eintrag entfernt.', 'success');
+                    } else {
+                        batch.set(doc(db, "meals", dateKey), data);
+                        const auditRef = doc(collection(db, "audit"));
+                        batch.set(auditRef, {
+                            action: 'meal_saved',
+                            dateKey,
+                            data,
+                            prevData: prevData || null,
+                            userId: currentUser?.uid || 'unknown',
+                            email: currentUser?.email || 'unbekannt',
+                            isAnonymous,
+                            profileColor: profileColor || '',
+                            timestamp: serverTimestamp(),
+                            userAgent: navigator.userAgent,
+                        });
+                        await batch.commit();
+                        closeEditView();
+                        showStatus(prevTab, 'Gespeichert für ' + formatDisplayDate(selectedDate), 'success');
+                    }
+                } catch (e) {
+                    showStatus(prevTab, 'Fehler beim Speichern', 'error');
                 }
+                _saving = false;
+                if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
             };
 
             window.deleteMeal = async () => {
@@ -2695,16 +2764,33 @@
                     showStatus(prevTab, 'Verbinde dich mit dem Internet um diese Funktion zu nutzen', 'error');
                     return;
                 }
+                if (_saving) return;
+                _saving = true;
                 const ok = await dlgConfirm('Mahlzeit wirklich löschen?', 'Löschen', '🗑️', true);
-                if (!ok) return;
+                if (!ok) { _saving = false; return; }
                 const dateKey = formatDateKey(selectedDate);
                 const data = (window._mealsMap || {})[dateKey] || {};
-                await deleteDoc(doc(db, "meals", dateKey)).catch(() => {});
-                await auditLog('meal_deleted', dateKey, data);
+                try {
+                    const batch = writeBatch(db);
+                    batch.delete(doc(db, "meals", dateKey));
+                    const auditRef = doc(collection(db, "audit"));
+                    batch.set(auditRef, {
+                        action: 'meal_deleted',
+                        dateKey,
+                        data,
+                        userId: currentUser?.uid || 'unknown',
+                        email: currentUser?.email || 'unbekannt',
+                        isAnonymous,
+                        profileColor: profileColor || '',
+                        timestamp: serverTimestamp(),
+                    });
+                    await batch.commit();
+                } catch (e) {}
                 document.getElementById('plan-dish').value = '';
                 document.getElementById('plan-mensa-type').value = '';
                 document.getElementById('plan-notes').value = '';
                 closeEditView();
+                _saving = false;
             };
 
             // === HOME: ANSTEHEND ===
@@ -3326,7 +3412,8 @@
 
             // === SERVICE WORKER ===
             if ("serviceWorker" in navigator) {
-                window.addEventListener("load", () => {
+                if (location.protocol === 'file:') { /* SW nicht auf file:// */ }
+                else window.addEventListener("load", () => {
                     navigator.serviceWorker.register("./service-worker.js").then(reg => {
                         setInterval(() => reg.update(), 60000);
                         reg.addEventListener("updatefound", () => {
